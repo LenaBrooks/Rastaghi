@@ -7,8 +7,8 @@ type UsageChartProps = {
 
 export function UsageChart({ usage }: UsageChartProps) {
   const pct = Math.min(100, Math.max(0, usage.usedPercent));
-  const free = Math.max(0, 100 - pct);
   const hue = pct >= 90 ? 8 : pct >= 70 ? 32 : "var(--hue)";
+  const remaining = Math.max(0, usage.quotaBytes - usage.usedBytes);
 
   return (
     <div className="admin-media-usage">
@@ -25,31 +25,23 @@ export function UsageChart({ usage }: UsageChartProps) {
       >
         <div className="admin-media-chart-hole">
           <strong>{toPersianDigits(pct)}٪</strong>
-          <span>مصرف</span>
         </div>
       </div>
-      <div className="admin-media-usage-meta">
-        <p>
-          <span className="admin-muted">مصرف‌شده</span>
-          <strong>{formatBytesFa(usage.usedBytes)}</strong>
-        </p>
-        <p>
-          <span className="admin-muted">سقف</span>
-          <strong>{formatBytesFa(usage.quotaBytes)}</strong>
-        </p>
-        <p>
-          <span className="admin-muted">باقی‌مانده</span>
-          <strong>
-            {formatBytesFa(Math.max(0, usage.quotaBytes - usage.usedBytes))}
-          </strong>
-        </p>
-        <p className="admin-media-usage-legend">
-          <span className="admin-media-dot is-used" />
-          مصرف‌شده ({toPersianDigits(pct)}٪)
-          <span className="admin-media-dot is-free" />
-          آزاد ({toPersianDigits(Math.round(free * 10) / 10)}٪)
-        </p>
-      </div>
+
+      <dl className="admin-media-usage-stats">
+        <div className="admin-media-usage-row">
+          <dt>مصرف‌شده</dt>
+          <dd>{formatBytesFa(usage.usedBytes)}</dd>
+        </div>
+        <div className="admin-media-usage-row">
+          <dt>سقف</dt>
+          <dd>{formatBytesFa(usage.quotaBytes)}</dd>
+        </div>
+        <div className="admin-media-usage-row">
+          <dt>باقی‌مانده</dt>
+          <dd>{formatBytesFa(remaining)}</dd>
+        </div>
+      </dl>
     </div>
   );
 }

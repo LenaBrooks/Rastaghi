@@ -7,8 +7,6 @@ import { BoldIcon } from "@/components/lucide/BoldIcon";
 import { CodeIcon } from "@/components/lucide/CodeIcon";
 import { CodeXmlIcon } from "@/components/lucide/CodeXmlIcon";
 import { CornerDownLeftIcon } from "@/components/lucide/CornerDownLeftIcon";
-import { EyeIcon } from "@/components/lucide/EyeIcon";
-import { EyeOffIcon } from "@/components/lucide/EyeOffIcon";
 import { Heading2Icon } from "@/components/lucide/Heading2Icon";
 import { Heading3Icon } from "@/components/lucide/Heading3Icon";
 import { ImageIcon } from "@/components/lucide/ImageIcon";
@@ -38,6 +36,8 @@ type MarkdownEditorProps = {
   value: string;
   onChange: (value: string) => void;
   rows?: number;
+  /** Controlled preview (eye lives in page toolbar). */
+  preview?: boolean;
 };
 
 type HistoryEntry = {
@@ -102,6 +102,7 @@ export function MarkdownEditor({
   value,
   onChange,
   rows = 18,
+  preview = false,
 }: MarkdownEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageFileRef = useRef<HTMLInputElement>(null);
@@ -114,7 +115,6 @@ export function MarkdownEditor({
   const lastRecordAt = useRef(Date.now());
   const applyingHistory = useRef(false);
 
-  const [preview, setPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadKind, setUploadKind] = useState<MediaKind | null>(null);
   const [uploadError, setUploadError] = useState("");
@@ -314,8 +314,12 @@ export function MarkdownEditor({
 
   return (
     <div className="admin-editor-block">
-      <div className="admin-editor-toolbar md-toolbar">
-        <div className="md-tool-group" role="toolbar" aria-label="قالب‌بندی Markdown">
+      <div
+        className="admin-editor-toolbar md-toolbar"
+        role="toolbar"
+        aria-label="قالب‌بندی Markdown"
+      >
+        <div className="md-tool-row">
           <ToolButton
             label="بازگشت (Ctrl+Z)"
             disabled={preview || !canUndo}
@@ -392,9 +396,9 @@ export function MarkdownEditor({
           >
             <QuoteIcon size={15} strokeWidth={1.75} aria-hidden />
           </ToolButton>
+        </div>
 
-          <ToolSep />
-
+        <div className="md-tool-row">
           <ToolButton
             label="کد درون‌خطی"
             disabled={preview}
@@ -502,18 +506,6 @@ export function MarkdownEditor({
             )}
           </ToolButton>
         </div>
-
-        <ToolButton
-          label={preview ? "بازگشت به ویرایش" : "پیش‌نمایش (استایل پست)"}
-          pressed={preview}
-          onClick={() => setPreview((v) => !v)}
-        >
-          {preview ? (
-            <EyeOffIcon size={15} strokeWidth={1.75} aria-hidden />
-          ) : (
-            <EyeIcon size={15} strokeWidth={1.75} aria-hidden />
-          )}
-        </ToolButton>
       </div>
 
       <input

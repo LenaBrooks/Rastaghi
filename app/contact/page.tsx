@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContactForm } from "@/components/contact/ContactForm";
 import { ShahinShell } from "@/components/home/ShahinShell";
 import { getHomeNavItems } from "@/lib/home-data";
 import { renderMarkdown } from "@/lib/markdown";
@@ -25,12 +26,13 @@ export default async function ContactPage() {
     <ShahinShell navItems={navItems}>
       <article className="shahin-post">
         <header className="shahin-post-header">
-          <h1 className="shahin-post-title">{title || "تماس با ما"}</h1>
+          <h1 className="home-shahin-section-title">{title || "تماس با ما"}</h1>
         </header>
         <div
           className="shahin-post-body"
           dangerouslySetInnerHTML={{ __html: html }}
         />
+        <ContactForm />
       </article>
     </ShahinShell>
   );

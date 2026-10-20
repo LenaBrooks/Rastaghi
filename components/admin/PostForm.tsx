@@ -9,6 +9,8 @@ import { TimeWheel } from "@/components/admin/TimeWheel";
 import { IconTooltip } from "@/components/IconTooltip";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
 import { PendingButton } from "@/components/PendingButton";
+import { EyeIcon } from "@/components/lucide/EyeIcon";
+import { EyeOffIcon } from "@/components/lucide/EyeOffIcon";
 import { PencilIcon } from "@/components/lucide/PencilIcon";
 import type { Category } from "@/lib/categories";
 import type { Post } from "@/lib/posts/types";
@@ -165,6 +167,7 @@ export function PostForm({
 
   const [step, setStep] = useState<Step>(1);
   const [stepError, setStepError] = useState("");
+  const [editorPreview, setEditorPreview] = useState(false);
   const [title, setTitle] = useState(post?.title ?? "");
   const [slug, setSlug] = useState(() =>
     post?.slug ? post.slug : nextNumericSlug(existingSlugs),
@@ -456,13 +459,17 @@ export function PostForm({
         setStepError("متن پست را بنویس.");
         return;
       }
+      setEditorPreview(false);
       setStep(3);
     }
   }
 
   function goBack() {
     setStepError("");
-    if (step === 2) setStep(1);
+    if (step === 2) {
+      setEditorPreview(false);
+      setStep(1);
+    }
     if (step === 3) setStep(2);
   }
 
@@ -501,8 +508,37 @@ export function PostForm({
         setStepError("");
       }}
     >
-      <div className="admin-toolbar">
+      <div className="admin-toolbar admin-toolbar-editor-head">
         <AdminPageTitle title={pageTitle} />
+        {step === 2 ? (
+          <IconTooltip
+            label={
+              editorPreview ? "بازگشت به ویرایش" : "پیش‌نمایش (استایل پست)"
+            }
+            side="bottom"
+            render={
+              <button
+                type="button"
+                className={
+                  editorPreview
+                    ? "admin-icon-btn admin-editor-preview-btn is-active"
+                    : "admin-icon-btn admin-editor-preview-btn"
+                }
+                aria-label={
+                  editorPreview ? "بازگشت به ویرایش" : "پیش‌نمایش"
+                }
+                aria-pressed={editorPreview}
+                onClick={() => setEditorPreview((v) => !v)}
+              />
+            }
+          >
+            {editorPreview ? (
+              <EyeOffIcon size={18} strokeWidth={1.75} aria-hidden />
+            ) : (
+              <EyeIcon size={18} strokeWidth={1.75} aria-hidden />
+            )}
+          </IconTooltip>
+        ) : null}
       </div>
 
       <fieldset
@@ -584,7 +620,11 @@ export function PostForm({
         </div>
 
         <div className="admin-step-panel" data-step="2" hidden={step !== 2}>
-          <MarkdownEditor value={body} onChange={setBody} />
+          <MarkdownEditor
+            value={body}
+            onChange={setBody}
+            preview={editorPreview}
+          />
         </div>
 
         <div className="admin-step-panel" data-step="3" hidden={step !== 3}>

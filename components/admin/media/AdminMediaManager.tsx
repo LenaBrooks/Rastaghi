@@ -13,6 +13,8 @@ import { ConfirmDelete } from "@/components/admin/ConfirmDelete";
 import { MediaKindIcon } from "@/components/admin/media/MediaKindIcon";
 import { UsageChart } from "@/components/admin/media/UsageChart";
 import { JalaliDate } from "@/components/JalaliDate";
+import { DownloadIcon } from "@/components/lucide/DownloadIcon";
+import { EyeIcon } from "@/components/lucide/EyeIcon";
 import { TrashIcon } from "@/components/lucide/TrashIcon";
 import {
   Sheet,
@@ -21,6 +23,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { formatBytesFa, toPersianDigits } from "@/lib/persian";
+
+function cloudinaryDownloadUrl(url: string): string {
+  if (!url.includes("/upload/")) return url;
+  return url.replace("/upload/", "/upload/fl_attachment/");
+}
 
 const LONG_PRESS_MS = 480;
 
@@ -326,21 +333,21 @@ export function AdminMediaManager({
                         plain
                       />
                       {item.width && item.height ? (
-                        <>
+                        <span className="admin-media-dims">
                           <span aria-hidden> · </span>
                           <span dir="ltr">
                             {toPersianDigits(item.width)}×
                             {toPersianDigits(item.height)}
                           </span>
-                        </>
+                        </span>
                       ) : null}
                       {item.duration ? (
-                        <>
+                        <span className="admin-media-duration">
                           <span aria-hidden> · </span>
                           <span>
                             {toPersianDigits(Math.round(item.duration))} ثانیه
                           </span>
-                        </>
+                        </span>
                       ) : null}
                     </span>
                   </div>
@@ -379,10 +386,14 @@ export function AdminMediaManager({
           if (!open) setSheetItem(null);
         }}
       >
-        <SheetContent side="bottom" className="admin-media-sheet">
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          className="admin-media-sheet admin-posts-sheet border-0 shadow-none"
+        >
           {sheetItem ? (
             <>
-              <SheetHeader>
+              <SheetHeader className="admin-posts-sheet-header">
                 <SheetTitle className="admin-media-sheet-title" dir="ltr">
                   {sheetItem.displayName}
                 </SheetTitle>
@@ -423,29 +434,37 @@ export function AdminMediaManager({
                     </dd>
                   </div>
                 ) : null}
-                <div>
-                  <dt>شناسه</dt>
-                  <dd dir="ltr" className="admin-media-public-id">
-                    {sheetItem.publicId}
-                  </dd>
-                </div>
               </dl>
-              <div className="admin-media-sheet-actions">
+              <div className="admin-posts-sheet-actions">
                 {sheetItem.url ? (
-                  <a
-                    href={sheetItem.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="admin-text-btn"
-                  >
-                    باز کردن فایل
-                  </a>
+                  <>
+                    <a
+                      href={sheetItem.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="admin-posts-sheet-btn"
+                      onClick={() => setSheetItem(null)}
+                    >
+                      <EyeIcon size={18} strokeWidth={1.75} aria-hidden />
+                      مشاهده
+                    </a>
+                    <a
+                      href={cloudinaryDownloadUrl(sheetItem.url)}
+                      download={sheetItem.displayName}
+                      className="admin-posts-sheet-btn"
+                      onClick={() => setSheetItem(null)}
+                    >
+                      <DownloadIcon size={18} strokeWidth={1.75} aria-hidden />
+                      دانلود
+                    </a>
+                  </>
                 ) : null}
                 <button
                   type="button"
-                  className="admin-text-btn admin-text-btn-danger"
+                  className="admin-posts-sheet-btn admin-posts-sheet-btn-danger"
                   onClick={() => openSingleDelete(sheetItem)}
                 >
+                  <TrashIcon size={18} strokeWidth={1.75} aria-hidden />
                   حذف
                 </button>
               </div>

@@ -2,18 +2,38 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/admin/actions";
 import { ThemeToggle } from "@/components/ThemeControls";
 import { EyeIcon } from "@/components/lucide/EyeIcon";
+import { ImageIcon } from "@/components/lucide/ImageIcon";
 import { LogOutIcon } from "@/components/lucide/LogOutIcon";
 import { MenuIcon } from "@/components/lucide/MenuIcon";
+import { TagsIcon } from "@/components/lucide/TagsIcon";
 import { XIcon } from "@/components/lucide/XIcon";
+
+/** Links not already on the bottom nav — keep hamburger for overflow. */
+const HAMBURGER_LINKS = [
+  {
+    href: "/admin/tags",
+    label: "برچسب‌ها",
+    match: (p: string) => p.startsWith("/admin/tags"),
+    icon: TagsIcon,
+  },
+  {
+    href: "/admin/media",
+    label: "فایل‌ها",
+    match: (p: string) => p.startsWith("/admin/media"),
+    icon: ImageIcon,
+  },
+] as const;
 
 type AdminNavProps = {
   authed: boolean;
 };
 
 export function AdminNav({ authed }: AdminNavProps) {
+  const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -32,6 +52,10 @@ export function AdminNav({ authed }: AdminNavProps) {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   if (!authed) return null;
 
@@ -91,6 +115,26 @@ export function AdminNav({ authed }: AdminNavProps) {
         className={open ? "admin-nav-mobile is-open" : "admin-nav-mobile"}
         aria-label="منوی موبایل ادمین"
       >
+        {HAMBURGER_LINKS.map((link) => {
+          const Icon = link.icon;
+          const active = link.match(pathname);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={
+                active
+                  ? "admin-link-btn admin-nav-item is-active"
+                  : "admin-link-btn admin-nav-item"
+              }
+              aria-current={active ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
+              <Icon size={18} strokeWidth={1.75} aria-hidden />
+              {link.label}
+            </Link>
+          );
+        })}
         <form action={logoutAction}>
           <button
             type="submit"
