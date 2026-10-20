@@ -31,7 +31,7 @@
   --primary-600: hsl(var(--hue), 40%, 25%);
   --primary-700: hsl(var(--hue), 70%, 35%);
 
-  --bg: var(--gray-300);
+  --bg: #ffffff;
   --surface: #ffffff;
   --text: var(--gray-900);
   --text-muted: var(--primary-600);
@@ -247,7 +247,7 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg: var(--gray-300);
+  --bg: #ffffff;
   --surface: #ffffff;
   --text: var(--gray-900);
   --text-muted: var(--primary-600);
@@ -882,6 +882,14 @@ blockquote {
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0.01em;
+  }
+
+  .admin-bottom-nav-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
   }
 
   .admin-main {
@@ -1659,9 +1667,13 @@ body:has(.admin-root) {
 
 .admin-brand {
   font-size: 1.2em;
-  color: var(--hs-fg) !important;
+  color: var(--primary) !important;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.admin-brand:visited {
+  color: var(--primary) !important;
 }
 
 .admin-nav-wrap {
@@ -1698,6 +1710,7 @@ body:has(.admin-root) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4em;
   padding: 0.32em 0.7em;
   border: 1px solid var(--hs-line);
   border-radius: var(--border-radius);
@@ -1708,6 +1721,32 @@ body:has(.admin-root) {
   text-decoration: none;
   white-space: nowrap;
   line-height: 1.3;
+}
+
+.admin-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35em;
+  height: 1.35em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: hsl(0, 72%, 46%);
+  color: #fff;
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-count-badge--nav {
+  position: absolute;
+  top: -0.25em;
+  inset-inline-end: -0.45em;
+  min-width: 1.15em;
+  height: 1.15em;
+  padding: 0 0.28em;
+  font-size: 0.65em;
 }
 
 .admin-subnav-link:hover {
@@ -1748,6 +1787,29 @@ body:has(.admin-root) {
   font: inherit;
 }
 
+.admin-site-eye {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25em;
+  height: 2.25em;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--hs-fg);
+  line-height: 0;
+  text-decoration: none;
+}
+
+.admin-site-eye:hover {
+  opacity: 0.8;
+  color: var(--hs-fg);
+}
+
+.admin-site-eye:visited {
+  color: var(--hs-fg);
+}
+
 .admin-menu-toggle {
   display: none;
   align-items: center;
@@ -1777,6 +1839,10 @@ body:has(.admin-root) {
 }
 
 @media (max-width: 768px) {
+  .admin-site-eye {
+    display: inline-flex;
+  }
+
   .admin-menu-toggle {
     display: inline-flex;
   }
@@ -2102,10 +2168,188 @@ body:has(.admin-root) {
   margin: 0 0 1.25em;
 }
 
+.admin-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75em;
+}
+
+.admin-comments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.admin-comments-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.admin-comments-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+}
+
+.admin-comment-card {
+  padding: 0.65em 0.75em;
+  border: 1px solid var(--hs-line);
+  border-radius: var(--border-radius);
+  background: var(--hs-bg);
+}
+
+.admin-comment-card.is-pending {
+  border-style: dashed;
+  background: var(--hs-soft);
+}
+
+.admin-comment-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75em 1em;
+}
+
+.admin-comment-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-comment-author {
+  display: block;
+  margin-bottom: 0.25em;
+  font-size: 1.02em;
+  font-weight: 700;
+  color: var(--hs-fg);
+}
+
+.admin-comment-body {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  font-size: 0.88em;
+  font-weight: 400;
+  color: var(--hs-muted);
+}
+
+.admin-comment-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25em;
+  flex-shrink: 0;
+}
+
+.admin-comment-date {
+  font-size: 0.8em;
+  color: var(--hs-muted);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.admin-comment-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15em;
+}
+
+.admin-comment-approve-form {
+  margin: 0;
+  display: inline-flex;
+}
+
+.admin-comment-approve.pending-btn,
+button.admin-comment-approve {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  min-width: 2em;
+  height: 2em;
+  margin: 0;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: var(--border-radius);
+  background: none !important;
+  box-shadow: none !important;
+  color: hsl(145, 45%, 36%) !important;
+  font: inherit;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.admin-comment-approve.pending-btn:hover,
+button.admin-comment-approve:hover {
+  color: hsl(145, 50%, 28%) !important;
+  background: color-mix(in oklch, hsl(145, 45%, 36%) 12%, transparent) !important;
+}
+
 .admin-settings-form {
   display: flex;
   flex-direction: column;
   gap: 1.35em;
+}
+
+.admin-settings-theme {
+  margin: 0;
+}
+
+.theme-toggle-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85em;
+  width: 100%;
+  margin: 0;
+  padding: 0.85em 1em;
+  border: 1px solid var(--hs-line);
+  border-radius: var(--border-radius);
+  background: var(--hs-soft);
+  color: var(--hs-fg);
+  font: inherit;
+  line-height: normal;
+  text-align: start;
+  cursor: pointer;
+}
+
+.theme-toggle-settings:hover {
+  background: color-mix(in oklch, var(--primary) 10%, var(--hs-soft));
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--hs-line));
+}
+
+.theme-toggle-settings-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  min-width: 0;
+}
+
+.theme-toggle-settings-title {
+  font-size: 1.05em;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--primary);
+}
+
+.theme-toggle-settings-value {
+  font-size: 0.92em;
+  color: var(--hs-muted);
+  line-height: 1.35;
+}
+
+.theme-toggle-settings svg {
+  flex-shrink: 0;
+  color: var(--primary);
+  opacity: 1;
 }
 
 .admin-settings-group {
@@ -4050,8 +4294,8 @@ body:has(.admin-root) {
 
 .comment-author {
   color: var(--text);
-  font-size: 1.12em;
-  font-weight: 600;
+  font-size: 1.05em;
+  font-weight: 700;
 }
 
 .comment-meta-side {
@@ -4085,8 +4329,10 @@ body:has(.admin-root) {
   padding-inline-start: calc(1.45em + 0.4em);
   white-space: pre-wrap;
   word-break: break-word;
-  font-size: 1.1em;
+  font-size: 0.95em;
+  font-weight: 400;
   line-height: 1.65;
+  color: color-mix(in oklch, var(--text) 88%, transparent);
 }
 
 .comment-footer {
@@ -4344,15 +4590,22 @@ body:has(.home-shahin) {
   width: 2.5rem;
   height: 2.5rem;
   padding: 0;
-  border: 2px solid var(--hs-frame);
-  background: var(--hs-surface);
+  border: none;
+  background: transparent;
   color: var(--hs-fg);
   cursor: pointer;
   line-height: 0;
+  box-shadow: none;
+  outline: none;
 }
 
 .home-shahin-theme-toggle.theme-toggle:hover {
   background: var(--hs-soft);
+}
+
+.home-shahin-theme-toggle.theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .home-shahin-search-toggle {
@@ -4362,15 +4615,22 @@ body:has(.home-shahin) {
   width: 2.5rem;
   height: 2.5rem;
   padding: 0;
-  border: 2px solid var(--hs-frame);
-  background: var(--hs-surface);
+  border: none;
+  background: transparent;
   color: var(--hs-fg);
   cursor: pointer;
   line-height: 0;
+  box-shadow: none;
+  outline: none;
 }
 
 .home-shahin-search-toggle:hover {
   background: var(--hs-soft);
+}
+
+.home-shahin-search-toggle:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .home-shahin-search-panel {
@@ -4891,7 +5151,7 @@ body:has(.home-shahin) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem 0;
+  gap: 0.55rem 1.1rem;
   padding: 0.75rem 0;
   border-block: 1px solid var(--hs-line-strong);
   font-size: 1.12rem;
@@ -4927,12 +5187,6 @@ body:has(.home-shahin) {
 a.shahin-post-meta-item:hover {
   text-decoration: underline;
   text-underline-offset: 0.15em;
-}
-
-.shahin-post-meta-sep {
-  margin-inline: 0.7em;
-  color: var(--hs-muted);
-  user-select: none;
 }
 
 .shahin-post-meta-icon {
@@ -4986,6 +5240,7 @@ a.shahin-post-meta-item:hover {
 .shahin-post-tags {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.55em 0.85em;
   margin-top: 1.75rem;
   padding-top: 1.1rem;
@@ -5000,6 +5255,11 @@ a.shahin-post-meta-item:hover {
 
 .shahin-post-tags a:hover {
   text-decoration: underline;
+}
+
+a.shahin-post-category {
+  font-weight: 600;
+  color: var(--hs-muted);
 }
 
 .shahin-post-related {

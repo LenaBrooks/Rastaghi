@@ -18,9 +18,6 @@ export default async function AdminSettingsPage() {
       <div className="admin-toolbar">
         <h1>تنظیمات</h1>
       </div>
-      <p className="admin-muted admin-settings-intro">
-        گزینه‌های قابل‌ویرایش سایت.
-      </p>
       <SettingsForm defs={defs} values={values} />
     </section>
   );

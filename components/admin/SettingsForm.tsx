@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveSettingsAction } from "@/app/admin/actions";
 import { PendingButton } from "@/components/PendingButton";
+import { ThemeToggle } from "@/components/ThemeControls";
 import type { SettingDef } from "@/lib/settings";
 
 type SettingsFormProps = {
@@ -37,6 +38,9 @@ export function SettingsForm({ defs, values }: SettingsFormProps) {
 
   return (
     <form action={action} className="admin-settings-form">
+      <div className="admin-settings-theme">
+        <ThemeToggle variant="settings" />
+      </div>
       {[...groups.entries()].map(([group, items]) => (
         <details key={group} className="admin-settings-group">
           <summary className="admin-settings-group-summary">{group}</summary>

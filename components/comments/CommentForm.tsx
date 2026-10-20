@@ -43,14 +43,18 @@ export function CommentForm({
     if (parentId != null) bodyRef.current?.focus();
   }, [parentId]);
 
-  const handleSuccess = useEffectEvent(() => {
+  const handleSuccess = useEffectEvent((result: CommentActionState) => {
     formRef.current?.reset();
     try {
       if (name.trim()) localStorage.setItem(NAME_KEY, name.trim());
     } catch {
       /* ignore */
     }
-    onSuccess?.();
+    // Pending comments stay hidden until approval. Don't refresh — that
+    // remounts the form and wipes the success message.
+    if (result.approved) {
+      onSuccess?.();
+    }
   });
 
   const [state, formAction] = useActionState(
@@ -65,7 +69,7 @@ export function CommentForm({
   );
 
   useEffect(() => {
-    if (state?.ok) handleSuccess();
+    if (state?.ok) handleSuccess(state);
   }, [state]);
 
   return (

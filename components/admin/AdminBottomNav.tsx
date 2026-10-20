@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ExternalLinkIcon } from "@/components/lucide/ExternalLinkIcon";
 import { FoldersIcon } from "@/components/lucide/FoldersIcon";
 import { ListIcon } from "@/components/lucide/ListIcon";
+import { MessageCircleIcon } from "@/components/lucide/MessageCircleIcon";
 import { PlusIcon } from "@/components/lucide/PlusIcon";
 import { SettingsIcon } from "@/components/lucide/SettingsIcon";
+import { toPersianDigits } from "@/lib/persian";
 
 const LINKS = [
   {
@@ -29,21 +30,25 @@ const LINKS = [
     icon: PlusIcon,
   },
   {
+    href: "/admin/comments",
+    label: "نظرات",
+    match: (p: string) => p.startsWith("/admin/comments"),
+    icon: MessageCircleIcon,
+    badgeKey: "comments" as const,
+  },
+  {
     href: "/admin/settings",
     label: "تنظیمات",
     match: (p: string) => p.startsWith("/admin/settings"),
     icon: SettingsIcon,
   },
-  {
-    href: "/",
-    label: "سایت",
-    match: () => false,
-    icon: ExternalLinkIcon,
-    external: true,
-  },
 ] as const;
 
-export function AdminBottomNav() {
+type AdminBottomNavProps = {
+  pendingComments?: number;
+};
+
+export function AdminBottomNav({ pendingComments = 0 }: AdminBottomNavProps) {
   const pathname = usePathname() ?? "";
 
   return (
@@ -54,21 +59,10 @@ export function AdminBottomNav() {
         const className = active
           ? "admin-bottom-nav-link is-active"
           : "admin-bottom-nav-link";
-
-        if ("external" in link && link.external) {
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={className}
-            >
-              <Icon size={22} strokeWidth={1.75} aria-hidden />
-              <span className="sr-only">{link.label}</span>
-            </Link>
-          );
-        }
+        const showBadge =
+          "badgeKey" in link &&
+          link.badgeKey === "comments" &&
+          pendingComments > 0;
 
         return (
           <Link
@@ -77,7 +71,17 @@ export function AdminBottomNav() {
             className={className}
             aria-current={active ? "page" : undefined}
           >
-            <Icon size={22} strokeWidth={active ? 2 : 1.75} aria-hidden />
+            <span className="admin-bottom-nav-icon-wrap">
+              <Icon size={22} strokeWidth={active ? 2 : 1.75} aria-hidden />
+              {showBadge ? (
+                <span
+                  className="admin-count-badge admin-count-badge--nav"
+                  aria-label={`${pendingComments} نظر در انتظار`}
+                >
+                  {toPersianDigits(pendingComments)}
+                </span>
+              ) : null}
+            </span>
             {active ? (
               <span className="admin-bottom-nav-label">{link.label}</span>
             ) : (

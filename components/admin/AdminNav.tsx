@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { logoutAction } from "@/app/admin/actions";
 import { ThemeToggle } from "@/components/ThemeControls";
+import { EyeIcon } from "@/components/lucide/EyeIcon";
 import { LogOutIcon } from "@/components/lucide/LogOutIcon";
 import { MenuIcon } from "@/components/lucide/MenuIcon";
 import { XIcon } from "@/components/lucide/XIcon";
@@ -35,6 +37,15 @@ export function AdminNav({ authed }: AdminNavProps) {
 
   return (
     <div className="admin-nav-wrap">
+      <Link
+        href="/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="admin-site-eye"
+        aria-label="مشاهده سایت"
+      >
+        <EyeIcon size={22} strokeWidth={1.75} aria-hidden />
+      </Link>
       <button
         type="button"
         className="admin-menu-toggle"
@@ -52,6 +63,14 @@ export function AdminNav({ authed }: AdminNavProps) {
 
       <nav className="admin-nav admin-nav-desktop" aria-label="منوی ادمین">
         <ThemeToggle />
+        <Link
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="admin-link-btn"
+        >
+          مشاهده سایت
+        </Link>
         <form action={logoutAction}>
           <button type="submit" className="admin-link-btn">
             خروج

@@ -13,6 +13,7 @@ import { getOrCreateVisitorId } from "@/lib/visitor";
 export type CommentActionState = {
   error?: string;
   ok?: boolean;
+  approved?: boolean;
   message?: string;
 };
 
@@ -47,12 +48,19 @@ export async function createCommentAction(
     };
   }
 
-  revalidatePath(`/${postSlug}`);
+  // Only revalidate the post when the comment is visible (approved).
+  // Revalidating pending comments remounts the form and wipes the success message.
+  if (isAdmin) {
+    revalidatePath(`/${postSlug}`);
+  }
+  revalidatePath("/admin/comments");
+  revalidatePath("/admin");
   return {
     ok: true,
+    approved: isAdmin,
     message: isAdmin
       ? "نظر شما ثبت و نمایش داده شد."
-      : "نظر شما ثبت شد ممنونم.",
+      : "نظر شما ثبت شد و پس از تأیید نمایش داده می‌شود.",
   };
 }
 
@@ -64,6 +72,7 @@ export async function approveCommentAction(formData: FormData): Promise<void> {
   if (!Number.isFinite(id)) return;
   const postSlug = await approveComment(id);
   if (postSlug) revalidatePath(`/${postSlug}`);
+  revalidatePath("/admin/comments");
 }
 
 export async function setCommentLikeAction(
@@ -90,4 +99,5 @@ export async function deleteCommentAction(formData: FormData): Promise<void> {
   if (!Number.isFinite(id)) return;
   const postSlug = await deleteComment(id);
   if (postSlug) revalidatePath(`/${postSlug}`);
+  revalidatePath("/admin/comments");
 }

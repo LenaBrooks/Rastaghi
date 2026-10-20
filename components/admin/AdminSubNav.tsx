@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/ThemeControls";
+import { toPersianDigits } from "@/lib/persian";
 
 const LINKS = [
   { href: "/admin", label: "پست‌ها", match: (p: string) => p === "/admin" },
@@ -22,38 +22,33 @@ const LINKS = [
     match: (p: string) => p.startsWith("/admin/tags"),
   },
   {
+    href: "/admin/comments",
+    label: "نظرات",
+    match: (p: string) => p.startsWith("/admin/comments"),
+    badgeKey: "comments" as const,
+  },
+  {
     href: "/admin/settings",
     label: "تنظیمات",
     match: (p: string) => p.startsWith("/admin/settings"),
   },
-  {
-    href: "/",
-    label: "مشاهده سایت",
-    match: () => false,
-    external: true,
-  },
 ] as const;
 
-export function AdminSubNav() {
+type AdminSubNavProps = {
+  pendingComments?: number;
+};
+
+export function AdminSubNav({ pendingComments = 0 }: AdminSubNavProps) {
   const pathname = usePathname() ?? "";
 
   return (
     <nav className="admin-subnav" aria-label="میانبرهای مدیریت">
       {LINKS.map((link) => {
         const active = link.match(pathname);
-        if ("external" in link && link.external) {
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="admin-subnav-link"
-            >
-              {link.label}
-            </Link>
-          );
-        }
+        const showBadge =
+          "badgeKey" in link &&
+          link.badgeKey === "comments" &&
+          pendingComments > 0;
         return (
           <Link
             key={link.href}
@@ -64,10 +59,14 @@ export function AdminSubNav() {
             aria-current={active ? "page" : undefined}
           >
             {link.label}
+            {showBadge ? (
+              <span className="admin-count-badge" aria-label={`${pendingComments} نظر در انتظار`}>
+                {toPersianDigits(pendingComments)}
+              </span>
+            ) : null}
           </Link>
         );
       })}
-      <ThemeToggle className="admin-subnav-link" />
     </nav>
   );
 }

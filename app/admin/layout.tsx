@@ -3,6 +3,7 @@ import { AdminBottomNav } from "@/components/admin/AdminBottomNav";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { isAdminAuthenticated } from "@/lib/auth";
+import { countPendingComments } from "@/lib/comments";
 
 export default async function AdminLayout({
   children,
@@ -10,6 +11,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const authed = await isAdminAuthenticated();
+  const pendingComments = authed ? await countPendingComments() : 0;
 
   return (
     <div className="admin-root">
@@ -19,9 +21,9 @@ export default async function AdminLayout({
         </Link>
         <AdminNav authed={authed} />
       </header>
-      {authed ? <AdminSubNav /> : null}
+      {authed ? <AdminSubNav pendingComments={pendingComments} /> : null}
       <div className="admin-main">{children}</div>
-      {authed ? <AdminBottomNav /> : null}
+      {authed ? <AdminBottomNav pendingComments={pendingComments} /> : null}
     </div>
   );
 }

@@ -4,62 +4,53 @@ import { useEffect, useState } from "react";
 import { IconTooltip } from "@/components/IconTooltip";
 import { MoonIcon } from "@/components/lucide/MoonIcon";
 import { SunIcon } from "@/components/lucide/SunIcon";
+import {
+  applyThemePref,
+  nextThemePref,
+  readThemePref,
+  resolveDark,
+  themePrefLabel,
+  type ThemePref,
+} from "@/lib/theme";
 
 type ThemeToggleProps = {
   className?: string;
   /** Menu row with label, like other hamburger items */
-  variant?: "icon" | "menu";
+  variant?: "icon" | "menu" | "settings";
 };
 
 export function ThemeToggle({
   className,
   variant = "icon",
 }: ThemeToggleProps) {
+  const [pref, setPref] = useState<ThemePref>("system");
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
     const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const storageKey = "theme";
-
-    function isDark() {
-      const theme = document.documentElement.getAttribute("data-theme");
-      return theme === "dark" || (!theme && darkQuery.matches);
-    }
-
-    function applyDarkClass(isDarkMode: boolean) {
-      const root = document.documentElement;
-      root.classList.toggle("dark", isDarkMode);
-      root.style.colorScheme = isDarkMode ? "dark" : "light";
-    }
 
     function sync() {
-      const next = isDark();
-      applyDarkClass(next);
-      setDark(next);
+      const nextPref = readThemePref();
+      setPref(nextPref);
+      setDark(resolveDark(nextPref));
     }
 
     sync();
 
-    function applyTheme(next: "light" | "dark") {
-      document.documentElement.setAttribute("data-theme", next);
-      applyDarkClass(next === "dark");
-      sessionStorage.setItem(storageKey, next);
-      setDark(next === "dark");
-      window.dispatchEvent(new Event("themechange"));
-    }
-
     function onPostTitle(e: Event) {
       const target = e.target as HTMLElement | null;
       if (!target?.closest(".post-title")) return;
-      applyTheme(isDark() ? "light" : "dark");
+      const next = nextThemePref(readThemePref());
+      applyThemePref(next);
     }
     document.addEventListener("click", onPostTitle);
 
     function onScheme() {
-      if (!sessionStorage.getItem(storageKey)) {
-        document.documentElement.removeAttribute("data-theme");
+      if (readThemePref() === "system") {
+        applyThemePref("system");
+      } else {
+        sync();
       }
-      sync();
     }
     darkQuery.addEventListener("change", onScheme);
     window.addEventListener("themechange", sync);
@@ -72,40 +63,30 @@ export function ThemeToggle({
   }, []);
 
   function onToggle() {
-    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const theme = document.documentElement.getAttribute("data-theme");
-    const isDarkNow = theme === "dark" || (!theme && darkQuery.matches);
-    const next = isDarkNow ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    document.documentElement.classList.toggle("dark", next === "dark");
-    document.documentElement.style.colorScheme =
-      next === "dark" ? "dark" : "light";
-    sessionStorage.setItem("theme", next);
-    setDark(next === "dark");
-    window.dispatchEvent(new Event("themechange"));
+    applyThemePref(nextThemePref(readThemePref()));
   }
 
-  const label = dark ? "حالت روشن" : "حالت تاریک";
+  const prefLabel = themePrefLabel(pref);
+  const actionLabel =
+    variant === "settings"
+      ? `تم برنامه: ${prefLabel}`
+      : dark
+        ? "حالت روشن"
+        : "حالت تاریک";
   const classes = [
     "theme-toggle",
     variant === "menu" ? "theme-toggle-menu" : null,
+    variant === "settings" ? "theme-toggle-settings" : null,
     className,
   ]
     .filter(Boolean)
     .join(" ");
 
+  const iconSize = variant === "icon" ? 22 : 18;
   const icon = dark ? (
-    <SunIcon
-      size={variant === "menu" ? 18 : 22}
-      strokeWidth={1.75}
-      aria-hidden
-    />
+    <SunIcon size={iconSize} strokeWidth={1.75} aria-hidden />
   ) : (
-    <MoonIcon
-      size={variant === "menu" ? 18 : 22}
-      strokeWidth={1.75}
-      aria-hidden
-    />
+    <MoonIcon size={iconSize} strokeWidth={1.75} aria-hidden />
   );
 
   if (variant === "menu") {
@@ -113,23 +94,40 @@ export function ThemeToggle({
       <button
         type="button"
         className={classes}
-        aria-label={label}
+        aria-label={actionLabel}
         onClick={onToggle}
       >
         {icon}
-        <span>{label}</span>
+        <span>{actionLabel}</span>
+      </button>
+    );
+  }
+
+  if (variant === "settings") {
+    return (
+      <button
+        type="button"
+        className={classes}
+        aria-label={actionLabel}
+        onClick={onToggle}
+      >
+        <span className="theme-toggle-settings-text">
+          <span className="theme-toggle-settings-title">تم برنامه</span>
+          <span className="theme-toggle-settings-value">{prefLabel}</span>
+        </span>
+        {icon}
       </button>
     );
   }
 
   return (
     <IconTooltip
-      label={label}
+      label={actionLabel}
       render={
         <button
           type="button"
           className={classes}
-          aria-label={label}
+          aria-label={actionLabel}
           onClick={onToggle}
         />
       }
@@ -157,7 +155,10 @@ export function HueSlider() {
     hueSlider.addEventListener("input", onInput);
 
     function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
         return;
       if (e.key === "`") {
         e.preventDefault();
@@ -187,7 +188,10 @@ export function HueSlider() {
 export function PaginationKeys() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
         return;
       const nav = document.querySelector(".pagination");
       if (!nav) return;

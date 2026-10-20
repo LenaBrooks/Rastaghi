@@ -6,7 +6,6 @@ import { ShahinShell } from "@/components/home/ShahinShell";
 import { JalaliDate } from "@/components/JalaliDate";
 import { CalendarIcon } from "@/components/lucide/CalendarIcon";
 import { MessageCircleIcon } from "@/components/lucide/MessageCircleIcon";
-import { TagsIcon } from "@/components/lucide/TagsIcon";
 import { UserIcon } from "@/components/lucide/UserIcon";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { categoryUrl } from "@/lib/categories";
@@ -81,11 +80,9 @@ export default async function PostPage({ params }: Props) {
     getHomeNavItems(),
   ]);
   const isAdmin = await isAdminAuthenticated();
-  const flatComments = await getCommentsForPost(slug, visitorId, {
-    includeUnapproved: isAdmin,
-  });
+  const flatComments = await getCommentsForPost(slug, visitorId);
   const commentTree = buildCommentTree(flatComments);
-  const commentCount = flatComments.filter((c) => c.approved).length;
+  const commentCount = flatComments.length;
   const categoryName = post.categories?.[0] ?? null;
   const author = site.author || site.title;
 
@@ -123,9 +120,6 @@ export default async function PostPage({ params }: Props) {
               />
               <JalaliDate date={post.date} format="%d %b %Y" plain />
             </span>
-            <span className="shahin-post-meta-sep" aria-hidden>
-              |
-            </span>
             <span className="shahin-post-meta-item">
               <UserIcon
                 size={15}
@@ -134,27 +128,6 @@ export default async function PostPage({ params }: Props) {
                 aria-hidden
               />
               <span>{author}</span>
-            </span>
-            {categoryName ? (
-              <>
-                <span className="shahin-post-meta-sep" aria-hidden>
-                  |
-                </span>
-                <span className="shahin-post-meta-item">
-                  <TagsIcon
-                    size={15}
-                    strokeWidth={1.7}
-                    className="shahin-post-meta-icon"
-                    aria-hidden
-                  />
-                  <Link href={categoryUrl(slugifyTitle(categoryName))}>
-                    {categoryName}
-                  </Link>
-                </span>
-              </>
-            ) : null}
-            <span className="shahin-post-meta-sep" aria-hidden>
-              |
             </span>
             <a href="#comments" className="shahin-post-meta-item">
               <MessageCircleIcon
@@ -177,8 +150,16 @@ export default async function PostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: html }}
         />
 
-        {post.tags.length > 0 ? (
+        {categoryName || post.tags.length > 0 ? (
           <footer className="shahin-post-tags">
+            {categoryName ? (
+              <Link
+                className="shahin-post-category"
+                href={categoryUrl(slugifyTitle(categoryName))}
+              >
+                {categoryName}
+              </Link>
+            ) : null}
             {post.tags.map((tag) => (
               <Link key={tag} rel="tag" href={tagUrl(tag)}>
                 #{tag}

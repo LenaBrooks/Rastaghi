@@ -110,6 +110,61 @@ export async function countApprovedComments(postSlug: string): Promise<number> {
   return Number(rows[0]?.n) || 0;
 }
 
+/** Pending (unapproved) comments across the site. */
+export async function countPendingComments(): Promise<number> {
+  if (!requireDbOrEmpty()) return 0;
+  const rows = (await sql()`
+    SELECT COUNT(*)::int AS n
+    FROM comments
+    WHERE approved = FALSE
+  `) as { n: number }[];
+  return Number(rows[0]?.n) || 0;
+}
+
+export type AdminCommentItem = CommentRow & {
+  postTitle: string | null;
+};
+
+/** Newest pending first, then recent approved. */
+export async function listAdminComments(options?: {
+  pendingOnly?: boolean;
+  limit?: number;
+}): Promise<AdminCommentItem[]> {
+  if (!requireDbOrEmpty()) return [];
+  const limit = Math.min(Math.max(options?.limit ?? 100, 1), 300);
+  const pendingOnly = options?.pendingOnly === true;
+
+  const rows = (
+    pendingOnly
+      ? await sql()`
+          SELECT
+            c.id, c.post_slug, c.parent_id, c.author_name, c.body,
+            c.likes_count, c.approved, c.created_at,
+            p.title AS post_title
+          FROM comments c
+          LEFT JOIN posts p ON p.slug = c.post_slug
+          WHERE c.approved = FALSE
+          ORDER BY c.created_at DESC, c.id DESC
+          LIMIT ${limit}
+        `
+      : await sql()`
+          SELECT
+            c.id, c.post_slug, c.parent_id, c.author_name, c.body,
+            c.likes_count, c.approved, c.created_at,
+            p.title AS post_title
+          FROM comments c
+          LEFT JOIN posts p ON p.slug = c.post_slug
+          ORDER BY c.approved ASC, c.created_at DESC, c.id DESC
+          LIMIT ${limit}
+        `
+  ) as (DbComment & { post_title: string | null })[];
+
+  return rows.map((row) => ({
+    ...mapRow(row, new Set()),
+    postTitle: row.post_title?.trim() || null,
+  }));
+}
+
 /** Build tree; visual depth max 2; deeper nodes keep depth=2 + replyToName. */
 export function buildCommentTree(flat: CommentRow[]): CommentNode[] {
   const byId = new Map<number, CommentNode>();
