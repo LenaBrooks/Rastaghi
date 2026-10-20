@@ -20,6 +20,20 @@ export type Post = {
   featured: boolean;
 };
 
+/** List/card fields without markdown HTML (and usually without body). */
+export type PostSummary = {
+  slug: string;
+  title: string;
+  date: string;
+  tags: string[];
+  categories?: string[];
+  excerpt?: string;
+  published: boolean;
+  featured: boolean;
+  /** Only when fetched with `includeBody: true` (e.g. admin word counts). */
+  body?: string;
+};
+
 export type Project = {
   slug: string;
   title: string;

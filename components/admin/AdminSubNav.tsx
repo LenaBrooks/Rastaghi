@@ -7,11 +7,6 @@ import { toPersianDigits } from "@/lib/persian";
 const LINKS = [
   { href: "/admin", label: "پست‌ها", match: (p: string) => p === "/admin" },
   {
-    href: "/admin/new",
-    label: "پست جدید",
-    match: (p: string) => p === "/admin/new",
-  },
-  {
     href: "/admin/categories",
     label: "دسته‌بندی‌ها",
     match: (p: string) => p.startsWith("/admin/categories"),
@@ -48,30 +43,35 @@ export function AdminSubNav({ pendingComments = 0 }: AdminSubNavProps) {
 
   return (
     <nav className="admin-subnav" aria-label="میانبرهای مدیریت">
-      {LINKS.map((link) => {
-        const active = link.match(pathname);
-        const showBadge =
-          "badgeKey" in link &&
-          link.badgeKey === "comments" &&
-          pendingComments > 0;
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={
-              active ? "admin-subnav-link is-active" : "admin-subnav-link"
-            }
-            aria-current={active ? "page" : undefined}
-          >
-            {link.label}
-            {showBadge ? (
-              <span className="admin-count-badge" aria-label={`${pendingComments} نظر در انتظار`}>
-                {toPersianDigits(pendingComments)}
-              </span>
-            ) : null}
-          </Link>
-        );
-      })}
+      <div className="admin-subnav-inner">
+        {LINKS.map((link) => {
+          const active = link.match(pathname);
+          const showBadge =
+            "badgeKey" in link &&
+            link.badgeKey === "comments" &&
+            pendingComments > 0;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={
+                active ? "admin-subnav-link is-active" : "admin-subnav-link"
+              }
+              aria-current={active ? "page" : undefined}
+            >
+              {link.label}
+              {showBadge ? (
+                <span
+                  className="admin-count-badge"
+                  aria-label={`${pendingComments} نظر در انتظار`}
+                >
+                  {toPersianDigits(pendingComments)}
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

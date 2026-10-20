@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PostList } from "@/components/PostList";
 import { SiteShell } from "@/components/SiteShell";
-import { getAllTags, getPosts } from "@/lib/posts";
+import { getAllTags, getPostSummaries } from "@/lib/posts";
 
 export const metadata: Metadata = {
   title: "برچسب‌ها",
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default async function TagsPage() {
   const tags = await getAllTags();
-  const posts = await getPosts();
+  const posts = await getPostSummaries();
   const untagged = posts.filter((p) => p.tags.length === 0);
 
   const groups = tags.map((tag) => ({

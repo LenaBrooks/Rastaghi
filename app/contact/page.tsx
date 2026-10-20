@@ -5,8 +5,6 @@ import { getHomeNavItems } from "@/lib/home-data";
 import { renderMarkdown } from "@/lib/markdown";
 import { getSetting } from "@/lib/settings";
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata(): Promise<Metadata> {
   const title = await getSetting("contact.title");
   return {

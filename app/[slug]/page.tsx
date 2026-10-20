@@ -1,30 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CommentsSection } from "@/components/comments/CommentsSection";
+import { Suspense } from "react";
+import { CommentsSkeleton } from "@/components/comments/CommentsSkeleton";
+import { PostComments } from "@/components/comments/PostComments";
 import { ShahinShell } from "@/components/home/ShahinShell";
 import { JalaliDate } from "@/components/JalaliDate";
 import { CalendarIcon } from "@/components/lucide/CalendarIcon";
 import { MessageCircleIcon } from "@/components/lucide/MessageCircleIcon";
 import { UserIcon } from "@/components/lucide/UserIcon";
-import { isAdminAuthenticated } from "@/lib/auth";
 import { categoryUrl } from "@/lib/categories";
-import {
-  buildCommentTree,
-  getCommentsForPost,
-} from "@/lib/comments";
 import { getHomeNavItems } from "@/lib/home-data";
-import { getCommentMode } from "@/lib/settings";
 import {
   getPostBySlug,
-  getPosts,
+  getPostSummaries,
   getRelatedPosts,
   postUrl,
   slugifyTitle,
   tagUrl,
 } from "@/lib/posts";
 import { site } from "@/lib/site";
-import { peekVisitorId } from "@/lib/visitor";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -43,7 +38,7 @@ const RESERVED = new Set([
 ]);
 
 export async function generateStaticParams() {
-  const posts = await getPosts();
+  const posts = await getPostSummaries();
   return posts
     .filter((p) => !RESERVED.has(p.slug))
     .map((p) => ({ slug: p.slug }));
@@ -75,16 +70,10 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound();
 
   const html = post.html;
-  const [related, visitorId, navItems, commentMode] = await Promise.all([
+  const [related, navItems] = await Promise.all([
     getRelatedPosts(post),
-    peekVisitorId(),
     getHomeNavItems(),
-    getCommentMode(),
   ]);
-  const isAdmin = await isAdminAuthenticated();
-  const flatComments = await getCommentsForPost(slug, visitorId);
-  const commentTree = buildCommentTree(flatComments);
-  const commentCount = flatComments.length;
   const categoryName = post.categories?.[0] ?? null;
   const author = site.author || site.title;
 
@@ -138,11 +127,7 @@ export default async function PostPage({ params }: Props) {
                 className="shahin-post-meta-icon"
                 aria-hidden
               />
-              <span>
-                {commentCount === 0
-                  ? "بدون نظر"
-                  : `${commentCount.toLocaleString("fa-IR")} نظر`}
-              </span>
+              <span>نظرات</span>
             </a>
           </div>
         </header>
@@ -184,13 +169,9 @@ export default async function PostPage({ params }: Props) {
         ) : null}
 
         <div className="shahin-post-comments">
-          <CommentsSection
-            postSlug={slug}
-            tree={commentTree}
-            totalCount={commentCount}
-            isAdmin={isAdmin}
-            commentMode={commentMode}
-          />
+          <Suspense fallback={<CommentsSkeleton />}>
+            <PostComments postSlug={slug} />
+          </Suspense>
         </div>
       </article>
     </ShahinShell>

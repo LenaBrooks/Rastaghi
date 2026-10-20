@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { DEFAULT_FONT_ID, listFontOptions, resolveFontId } from "@/lib/fonts/catalog";
 import { hasDatabaseUrl, sql } from "@/lib/db";
 
@@ -139,7 +140,7 @@ function requireDbOrEmpty(): boolean {
   return false;
 }
 
-export async function getSettingsMap(): Promise<Record<string, string>> {
+async function loadSettingsMap(): Promise<Record<string, string>> {
   const map: Record<string, string> = {};
   for (const def of SETTING_DEFS) {
     map[def.key] = def.defaultValue;
@@ -166,17 +167,20 @@ export async function getSettingsMap(): Promise<Record<string, string>> {
   return map;
 }
 
+const getSettingsMapCached = unstable_cache(loadSettingsMap, ["site-settings-map"], {
+  revalidate: 60,
+  tags: ["settings"],
+});
+
+export async function getSettingsMap(): Promise<Record<string, string>> {
+  return getSettingsMapCached();
+}
+
 export async function getSetting(key: SettingKey): Promise<string> {
   const def = SETTING_DEFS.find((d) => d.key === key);
   const fallback = def?.defaultValue ?? "";
-  if (!requireDbOrEmpty()) return fallback;
-
-  const rows = (await sql()`
-    SELECT value FROM site_settings WHERE key = ${key} LIMIT 1
-  `) as { value: string }[];
-
-  const value = rows[0]?.value ?? fallback;
-  return FONT_KEYS.has(key) ? resolveFontId(value) : value;
+  const map = await getSettingsMap();
+  return map[key] ?? fallback;
 }
 
 export async function setSettings(

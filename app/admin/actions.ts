@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   checkPassword,
@@ -339,6 +339,7 @@ export async function saveSettingsAction(
     return { error: "ذخیره تنظیمات ناموفق بود." };
   }
 
+  revalidateTag("settings", { expire: 0 });
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
   revalidatePath("/");

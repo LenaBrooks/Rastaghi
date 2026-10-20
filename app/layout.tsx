@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { NavigationProgress } from "@/components/NavigationProgress";
 import { PwaRegister } from "@/components/PwaRegister";
 import { ThemeScript } from "@/components/ThemeScript";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -78,6 +79,7 @@ export default async function RootLayout({
         <meta name="copyright" content={site.copyright} />
       </head>
       <body>
+        <NavigationProgress />
         <TooltipProvider delay={280}>{children}</TooltipProvider>
         <PwaRegister />
       </body>

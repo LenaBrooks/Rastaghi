@@ -1,11 +1,11 @@
 import Link from "next/link";
-import type { Post } from "@/lib/posts/types";
+import type { PostSummary } from "@/lib/posts/types";
 import { postUrl } from "@/lib/posts";
 import { JalaliDate } from "./JalaliDate";
 
 type Group = {
   title: string;
-  posts: Post[];
+  posts: PostSummary[];
 };
 
 type PostListProps = {

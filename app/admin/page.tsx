@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPostsList } from "@/components/admin/AdminPostsList";
-import { getPosts } from "@/lib/posts";
+import { getPostSummaries } from "@/lib/posts";
 
 export const metadata: Metadata = {
   title: "پنل ادمین",
@@ -32,15 +32,18 @@ function countChars(markdown: string): number {
 }
 
 export default async function AdminDashboardPage() {
-  const posts = await getPosts({ includeDrafts: true });
+  const posts = await getPostSummaries({
+    includeDrafts: true,
+    includeBody: true,
+  });
   const items = posts.map((post) => ({
     slug: post.slug,
     title: post.title,
     date: post.date,
     categories: post.categories ?? [],
     tags: post.tags ?? [],
-    wordCount: countWords(post.body),
-    charCount: countChars(post.body),
+    wordCount: countWords(post.body ?? ""),
+    charCount: countChars(post.body ?? ""),
     published: post.published,
   }));
 

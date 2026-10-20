@@ -12,7 +12,7 @@ import { MenuIcon } from "@/components/lucide/MenuIcon";
 import { TagsIcon } from "@/components/lucide/TagsIcon";
 import { XIcon } from "@/components/lucide/XIcon";
 
-/** Links not already on the bottom nav — keep hamburger for overflow. */
+/** Overflow links not on the bottom nav. */
 const HAMBURGER_LINKS = [
   {
     href: "/admin/tags",
@@ -65,23 +65,24 @@ export function AdminNav({ authed }: AdminNavProps) {
         href="/"
         target="_blank"
         rel="noopener noreferrer"
-        className="admin-site-eye"
+        className="admin-header-icon-btn admin-site-eye"
         aria-label="مشاهده سایت"
       >
-        <EyeIcon size={22} strokeWidth={1.75} aria-hidden />
+        <EyeIcon size={20} strokeWidth={1.75} aria-hidden />
       </Link>
+
       <button
         type="button"
-        className="admin-menu-toggle"
+        className="admin-header-icon-btn admin-menu-toggle"
         aria-label={open ? "بستن منو" : "باز کردن منو"}
         aria-expanded={open}
         aria-controls="admin-mobile-nav"
         onClick={() => setOpen((v) => !v)}
       >
         {open ? (
-          <XIcon size={22} strokeWidth={1.75} aria-hidden />
+          <XIcon size={20} strokeWidth={1.75} aria-hidden />
         ) : (
-          <MenuIcon size={22} strokeWidth={1.75} aria-hidden />
+          <MenuIcon size={20} strokeWidth={1.75} aria-hidden />
         )}
       </button>
 
@@ -91,12 +92,14 @@ export function AdminNav({ authed }: AdminNavProps) {
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="admin-link-btn"
+          className="admin-header-text-btn"
         >
+          <EyeIcon size={16} strokeWidth={1.75} aria-hidden />
           مشاهده سایت
         </Link>
-        <form action={logoutAction}>
-          <button type="submit" className="admin-link-btn">
+        <form action={logoutAction} className="admin-header-logout-form">
+          <button type="submit" className="admin-header-text-btn is-danger">
+            <LogOutIcon size={16} strokeWidth={1.75} aria-hidden />
             خروج
           </button>
         </form>
@@ -115,31 +118,31 @@ export function AdminNav({ authed }: AdminNavProps) {
         className={open ? "admin-nav-mobile is-open" : "admin-nav-mobile"}
         aria-label="منوی موبایل ادمین"
       >
-        {HAMBURGER_LINKS.map((link) => {
-          const Icon = link.icon;
-          const active = link.match(pathname);
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={
-                active
-                  ? "admin-link-btn admin-nav-item is-active"
-                  : "admin-link-btn admin-nav-item"
-              }
-              aria-current={active ? "page" : undefined}
-              onClick={() => setOpen(false)}
-            >
-              <Icon size={18} strokeWidth={1.75} aria-hidden />
-              {link.label}
-            </Link>
-          );
-        })}
+        <div className="admin-nav-mobile-group">
+          {HAMBURGER_LINKS.map((link) => {
+            const Icon = link.icon;
+            const active = link.match(pathname);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={
+                  active
+                    ? "admin-nav-item is-active"
+                    : "admin-nav-item"
+                }
+                aria-current={active ? "page" : undefined}
+                onClick={() => setOpen(false)}
+              >
+                <Icon size={18} strokeWidth={1.75} aria-hidden />
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="admin-nav-mobile-divider" aria-hidden />
         <form action={logoutAction}>
-          <button
-            type="submit"
-            className="admin-link-btn admin-nav-item admin-nav-item-logout"
-          >
+          <button type="submit" className="admin-nav-item admin-nav-item-logout">
             <LogOutIcon size={18} strokeWidth={1.75} aria-hidden />
             خروج
           </button>

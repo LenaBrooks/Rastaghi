@@ -4,7 +4,12 @@ import {
   getHomeCategories,
 } from "@/lib/categories";
 import { formatJalali } from "@/lib/jalali";
-import { getPosts, getProjects, postUrl } from "@/lib/posts";
+import {
+  getPostBodiesBySlugs,
+  getPostSummaries,
+  getProjects,
+  postUrl,
+} from "@/lib/posts";
 import { getSetting } from "@/lib/settings";
 import type {
   HomeLinkItem,
@@ -80,10 +85,24 @@ function postToItem(
 
 export async function getHomeSections(): Promise<HomeSection[]> {
   const [posts, homeCategories, featuredTitle] = await Promise.all([
-    getPosts(),
+    getPostSummaries(),
     getHomeCategories(),
     getSetting("home.featured_title"),
   ]);
+
+  const bodyModeCats = homeCategories.filter((c) => c.homeItemMode === "body");
+  const bodySlugs =
+    bodyModeCats.length > 0
+      ? posts
+          .filter((p) =>
+            bodyModeCats.some((c) => (p.categories ?? []).includes(c.name)),
+          )
+          .map((p) => p.slug)
+      : [];
+  const bodies =
+    bodySlugs.length > 0
+      ? await getPostBodiesBySlugs(bodySlugs)
+      : new Map<string, string>();
 
   const sections: HomeSection[] = [];
   const featured = posts.filter((p) => p.featured);
@@ -97,10 +116,17 @@ export async function getHomeSections(): Promise<HomeSection[]> {
   }
 
   for (const cat of homeCategories) {
-    const items = posts
+    const catPosts = posts
       .filter((p) => (p.categories ?? []).includes(cat.name))
-      .slice(0, 12)
-      .map((p) => postToItem(p, cat.homeItemMode));
+      .slice(0, 12);
+    const items = catPosts.map((p) =>
+      postToItem(
+        cat.homeItemMode === "body"
+          ? { ...p, body: bodies.get(p.slug) ?? "" }
+          : p,
+        cat.homeItemMode,
+      ),
+    );
     if (items.length === 0) continue;
     sections.push({
       id: `cat-${cat.slug || encodeURIComponent(cat.name)}`,

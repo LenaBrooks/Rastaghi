@@ -1,8 +1,8 @@
 import { hasDatabaseUrl, sql } from "@/lib/db";
 import { renderMarkdown } from "@/lib/markdown";
-import type { Post, Project } from "./types";
+import type { Post, PostSummary, Project } from "./types";
 
-export type { Post, Project } from "./types";
+export type { Post, PostSummary, Project } from "./types";
 
 function requireDbOrEmpty(): boolean {
   if (hasDatabaseUrl()) return true;
@@ -26,9 +26,26 @@ type PostRow = {
   featured?: boolean | null;
 };
 
+type PostSummaryRow = {
+  slug: string;
+  title: string;
+  date: string | Date;
+  tags: string[] | null;
+  categories: string[] | null;
+  excerpt: string | null;
+  body?: string | null;
+  published?: boolean | null;
+  featured?: boolean | null;
+};
+
 type PostQueryOptions = {
   /** When true, include drafts (admin). Public callers omit this. */
   includeDrafts?: boolean;
+};
+
+type PostSummaryQueryOptions = PostQueryOptions & {
+  /** Include raw markdown body (no HTML render). For admin counts / home body mode. */
+  includeBody?: boolean;
 };
 
 type ProjectRow = {
@@ -96,6 +113,21 @@ function mapPost(row: PostRow): Post {
   };
 }
 
+function mapPostSummary(row: PostSummaryRow): PostSummary {
+  const summary: PostSummary = {
+    slug: row.slug,
+    title: row.title,
+    date: formatDate(row.date),
+    tags: row.tags ?? [],
+    categories: row.categories ?? [],
+    excerpt: row.excerpt ?? undefined,
+    published: row.published !== false,
+    featured: row.featured === true,
+  };
+  if (row.body != null) summary.body = row.body;
+  return summary;
+}
+
 function mapProject(row: ProjectRow): Project {
   return {
     slug: row.slug,
@@ -108,7 +140,7 @@ function mapProject(row: ProjectRow): Project {
   };
 }
 
-/** Load posts (newest first). Drafts are excluded unless includeDrafts. */
+/** Full posts with rendered HTML (feed, single-post). Prefer summaries for lists. */
 export async function getPosts(
   options: PostQueryOptions = {},
 ): Promise<Post[]> {
@@ -126,6 +158,54 @@ export async function getPosts(
         ORDER BY date DESC, slug ASC
       `) as PostRow[]);
   return rows.map(mapPost);
+}
+
+/** List posts without markdown HTML. Optionally include raw body. */
+export async function getPostSummaries(
+  options: PostSummaryQueryOptions = {},
+): Promise<PostSummary[]> {
+  if (!requireDbOrEmpty()) return [];
+  const withBody = options.includeBody === true;
+  const rows = options.includeDrafts
+    ? withBody
+      ? ((await sql()`
+          SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+          FROM posts
+          ORDER BY date DESC, slug ASC
+        `) as PostSummaryRow[])
+      : ((await sql()`
+          SELECT slug, title, date, tags, categories, excerpt, published, featured
+          FROM posts
+          ORDER BY date DESC, slug ASC
+        `) as PostSummaryRow[])
+    : withBody
+      ? ((await sql()`
+          SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+          FROM posts
+          WHERE published = TRUE
+          ORDER BY date DESC, slug ASC
+        `) as PostSummaryRow[])
+      : ((await sql()`
+          SELECT slug, title, date, tags, categories, excerpt, published, featured
+          FROM posts
+          WHERE published = TRUE
+          ORDER BY date DESC, slug ASC
+        `) as PostSummaryRow[]);
+  return rows.map(mapPostSummary);
+}
+
+/** Raw markdown bodies for specific slugs (home body-mode sections). */
+export async function getPostBodiesBySlugs(
+  slugs: string[],
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (!requireDbOrEmpty() || slugs.length === 0) return map;
+  const rows = (await sql()`
+    SELECT slug, body FROM posts
+    WHERE slug = ANY (${slugs}) AND published = TRUE
+  `) as { slug: string; body: string }[];
+  for (const row of rows) map.set(row.slug, row.body ?? "");
+  return map;
 }
 
 export async function getPostBySlug(
@@ -150,10 +230,10 @@ export async function getPostBySlug(
 }
 
 export async function getAdjacentPosts(slug: string): Promise<{
-  previous: Post | null;
-  next: Post | null;
+  previous: PostSummary | null;
+  next: PostSummary | null;
 }> {
-  const posts = await getPosts();
+  const posts = await getPostSummaries();
   const index = posts.findIndex((p) => p.slug === slug);
   if (index < 0) return { previous: null, next: null };
   return {
@@ -163,12 +243,12 @@ export async function getAdjacentPosts(slug: string): Promise<{
 }
 
 export async function getRelatedPosts(
-  post: Post,
+  post: Pick<Post, "slug" | "tags" | "categories">,
   limit = 3,
-): Promise<Post[]> {
-  const posts = await getPosts();
+): Promise<PostSummary[]> {
+  const posts = await getPostSummaries();
   const others = posts.filter((p) => p.slug !== post.slug);
-  const score = (other: Post) => {
+  const score = (other: PostSummary) => {
     const tagHits = other.tags.filter((t) => post.tags.includes(t)).length;
     const catHits = (other.categories ?? []).filter((c) =>
       (post.categories ?? []).includes(c),
@@ -191,7 +271,7 @@ export async function getRelatedPosts(
 export async function getAllTags(): Promise<
   { name: string; slug: string; count: number }[]
 > {
-  const posts = await getPosts();
+  const posts = await getPostSummaries();
   const counts = new Map<string, number>();
   for (const post of posts) {
     for (const tag of post.tags) {
@@ -203,37 +283,39 @@ export async function getAllTags(): Promise<
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "fa"));
 }
 
-export async function getPostsByTag(tag: string): Promise<Post[]> {
+export async function getPostsByTag(tag: string): Promise<PostSummary[]> {
   if (!requireDbOrEmpty()) return [];
   const decoded = decodeURIComponent(tag);
   const rows = (await sql()`
-    SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+    SELECT slug, title, date, tags, categories, excerpt, published, featured
     FROM posts
     WHERE ${decoded} = ANY (tags) AND published = TRUE
     ORDER BY date DESC, slug ASC
-  `) as PostRow[];
-  return rows.map(mapPost);
+  `) as PostSummaryRow[];
+  return rows.map(mapPostSummary);
 }
 
-export async function getPostsByCategory(category: string): Promise<Post[]> {
+export async function getPostsByCategory(
+  category: string,
+): Promise<PostSummary[]> {
   if (!requireDbOrEmpty()) return [];
   const name = decodeURIComponent(category).trim();
   if (!name) return [];
   const rows = (await sql()`
-    SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+    SELECT slug, title, date, tags, categories, excerpt, published, featured
     FROM posts
     WHERE ${name} = ANY (categories) AND published = TRUE
     ORDER BY date DESC, slug ASC
-  `) as PostRow[];
-  return rows.map(mapPost);
+  `) as PostSummaryRow[];
+  return rows.map(mapPostSummary);
 }
 
 export async function getAllCategories(): Promise<
-  { name: string; posts: Post[] }[]
+  { name: string; posts: PostSummary[] }[]
 > {
-  const posts = await getPosts();
-  const map = new Map<string, Post[]>();
-  const uncategorized: Post[] = [];
+  const posts = await getPostSummaries();
+  const map = new Map<string, PostSummary[]>();
+  const uncategorized: PostSummary[] = [];
   for (const post of posts) {
     if (!post.categories?.length) {
       uncategorized.push(post);
@@ -256,10 +338,10 @@ export async function getAllCategories(): Promise<
 }
 
 export async function getPostsGroupedByYear(): Promise<
-  { year: string; posts: Post[] }[]
+  { year: string; posts: PostSummary[] }[]
 > {
-  const posts = await getPosts();
-  const map = new Map<string, Post[]>();
+  const posts = await getPostSummaries();
+  const map = new Map<string, PostSummary[]>();
   for (const post of posts) {
     const year = post.date.slice(0, 4);
     const list = map.get(year) ?? [];

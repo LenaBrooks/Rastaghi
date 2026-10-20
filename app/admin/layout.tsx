@@ -16,10 +16,12 @@ export default async function AdminLayout({
   return (
     <div className="admin-root">
       <header className="admin-header">
-        <Link href="/admin" className="admin-brand">
-          پنل مدیریت
-        </Link>
-        <AdminNav authed={authed} />
+        <div className="admin-header-inner">
+          <Link href="/admin" className="admin-brand">
+            پنل مدیریت
+          </Link>
+          <AdminNav authed={authed} />
+        </div>
       </header>
       {authed ? <AdminSubNav pendingComments={pendingComments} /> : null}
       <div className="admin-main">{children}</div>
