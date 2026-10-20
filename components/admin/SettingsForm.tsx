@@ -1,10 +1,12 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveSettingsAction } from "@/app/admin/actions";
 import { PendingButton } from "@/components/PendingButton";
 import { ThemeToggle } from "@/components/ThemeControls";
+import { FoldersIcon } from "@/components/lucide/FoldersIcon";
 import type { SettingDef } from "@/lib/settings";
 
 type SettingsFormProps = {
@@ -41,6 +43,13 @@ export function SettingsForm({ defs, values }: SettingsFormProps) {
       <div className="admin-settings-theme">
         <ThemeToggle variant="settings" />
       </div>
+      <Link href="/admin/media" className="admin-settings-media-link">
+        <FoldersIcon size={18} strokeWidth={1.75} aria-hidden />
+        <span>
+          <strong>مدیریت فایل‌ها</strong>
+          <span className="admin-muted">حجم Cloudinary و حذف فایل‌ها</span>
+        </span>
+      </Link>
       {[...groups.entries()].map(([group, items]) => (
         <details key={group} className="admin-settings-group">
           <summary className="admin-settings-group-summary">{group}</summary>

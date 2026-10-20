@@ -28,6 +28,11 @@ const LINKS = [
     badgeKey: "comments" as const,
   },
   {
+    href: "/admin/media",
+    label: "فایل‌ها",
+    match: (p: string) => p.startsWith("/admin/media"),
+  },
+  {
     href: "/admin/settings",
     label: "تنظیمات",
     match: (p: string) => p.startsWith("/admin/settings"),

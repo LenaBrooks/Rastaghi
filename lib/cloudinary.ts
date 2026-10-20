@@ -211,3 +211,213 @@ export async function uploadImageToCloudinary(
     height: uploaded.height,
   };
 }
+
+const AUDIO_FORMATS = new Set([
+  "mp3",
+  "m4a",
+  "aac",
+  "wav",
+  "ogg",
+  "flac",
+  "mpga",
+  "wma",
+]);
+
+/** Soft quota for admin UI (bytes). Override with CLOUDINARY_STORAGE_LIMIT_GB. */
+export function getCloudinaryQuotaBytes(): number {
+  const raw = process.env.CLOUDINARY_STORAGE_LIMIT_GB?.trim();
+  const gb = raw ? Number(raw) : 10;
+  if (!Number.isFinite(gb) || gb <= 0) return 10 * 1024 * 1024 * 1024;
+  return gb * 1024 * 1024 * 1024;
+}
+
+export function cloudinaryFolder(): string {
+  return process.env.CLOUDINARY_FOLDER?.trim() || "rastaghi";
+}
+
+export type CloudinaryUsageSummary = {
+  usedBytes: number;
+  quotaBytes: number;
+  /** 0–100 */
+  usedPercent: number;
+};
+
+export async function getCloudinaryUsage(): Promise<CloudinaryUsageSummary> {
+  if (!isCloudinaryConfigured()) {
+    throw new Error("Cloudinary پیکربندی نشده است.");
+  }
+  configure();
+  const quotaBytes = getCloudinaryQuotaBytes();
+  const usage = (await cloudinary.api.usage()) as {
+    storage?: { usage?: number };
+  };
+  const usedBytes = Number(usage.storage?.usage) || 0;
+  const usedPercent = Math.min(
+    100,
+    Math.round((usedBytes / quotaBytes) * 1000) / 10,
+  );
+  return { usedBytes, quotaBytes, usedPercent };
+}
+
+export type CloudinaryMediaItem = {
+  publicId: string;
+  resourceType: "image" | "video";
+  kind: MediaKind;
+  url: string;
+  bytes: number;
+  format: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  createdAt: string;
+  displayName: string;
+};
+
+type RawResource = {
+  public_id: string;
+  secure_url?: string;
+  url?: string;
+  bytes?: number;
+  format?: string;
+  resource_type?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  created_at?: string;
+};
+
+function classifyKind(row: RawResource): MediaKind {
+  const format = (row.format || "").toLowerCase();
+  if (row.resource_type === "image") return "image";
+  if (AUDIO_FORMATS.has(format)) return "audio";
+  // Audio webm/ogg often has no meaningful frame size
+  if (
+    (format === "webm" || format === "ogg") &&
+    (!row.width || row.width < 2)
+  ) {
+    return "audio";
+  }
+  return "video";
+}
+
+function displayNameFromPublicId(publicId: string, format?: string): string {
+  const base = publicId.split("/").pop() || publicId;
+  if (format && !base.toLowerCase().endsWith(`.${format.toLowerCase()}`)) {
+    return `${base}.${format}`;
+  }
+  return base;
+}
+
+function mapResource(row: RawResource): CloudinaryMediaItem {
+  const kind = classifyKind(row);
+  const resourceType: "image" | "video" =
+    row.resource_type === "image" ? "image" : "video";
+  const format = row.format || "";
+  return {
+    publicId: row.public_id,
+    resourceType,
+    kind,
+    url: row.secure_url || row.url || "",
+    bytes: Number(row.bytes) || 0,
+    format,
+    width: row.width,
+    height: row.height,
+    duration: row.duration,
+    createdAt: row.created_at || new Date(0).toISOString(),
+    displayName: displayNameFromPublicId(row.public_id, format),
+  };
+}
+
+export type ListCloudinaryMediaResult = {
+  items: CloudinaryMediaItem[];
+  nextCursor: string | null;
+};
+
+/**
+ * List assets in the configured folder, filtered by media kind.
+ * Audio lives under Cloudinary `video` resource type.
+ */
+export async function listCloudinaryMedia(options: {
+  kind: MediaKind;
+  nextCursor?: string | null;
+  maxResults?: number;
+}): Promise<ListCloudinaryMediaResult> {
+  if (!isCloudinaryConfigured()) {
+    throw new Error("Cloudinary پیکربندی نشده است.");
+  }
+  configure();
+
+  const folder = cloudinaryFolder();
+  const maxResults = Math.min(Math.max(options.maxResults ?? 50, 1), 100);
+  const resourceType = options.kind === "image" ? "image" : "video";
+
+  // Pull a larger page then filter so audio/video tabs stay useful.
+  const fetchSize =
+    options.kind === "image" ? maxResults : Math.min(maxResults * 3, 100);
+
+  const result = (await cloudinary.api.resources({
+    type: "upload",
+    resource_type: resourceType,
+    prefix: `${folder}/`,
+    max_results: fetchSize,
+    next_cursor: options.nextCursor || undefined,
+  })) as {
+    resources?: RawResource[];
+    next_cursor?: string;
+  };
+
+  const mapped = (result.resources ?? []).map(mapResource);
+  const items =
+    options.kind === "image"
+      ? mapped
+      : mapped
+          .filter((item) => item.kind === options.kind)
+          .slice(0, maxResults);
+
+  return {
+    items,
+    nextCursor: result.next_cursor ?? null,
+  };
+}
+
+export async function deleteCloudinaryMedia(
+  targets: { publicId: string; resourceType: "image" | "video" }[],
+): Promise<{ deleted: string[]; failed: string[] }> {
+  if (!isCloudinaryConfigured()) {
+    throw new Error("Cloudinary پیکربندی نشده است.");
+  }
+  if (targets.length === 0) {
+    return { deleted: [], failed: [] };
+  }
+  configure();
+
+  const byType = new Map<"image" | "video", string[]>();
+  for (const t of targets) {
+    const list = byType.get(t.resourceType) ?? [];
+    list.push(t.publicId);
+    byType.set(t.resourceType, list);
+  }
+
+  const deleted: string[] = [];
+  const failed: string[] = [];
+
+  for (const [resourceType, ids] of byType) {
+    // Cloudinary accepts up to 100 ids per call
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100);
+      const result = (await cloudinary.api.delete_resources(chunk, {
+        resource_type: resourceType,
+        type: "upload",
+      })) as { deleted?: Record<string, string> };
+
+      const map = result.deleted ?? {};
+      for (const id of chunk) {
+        if (map[id] === "deleted") deleted.push(id);
+        else failed.push(id);
+      }
+    }
+  }
+
+  return { deleted, failed };
+}
+

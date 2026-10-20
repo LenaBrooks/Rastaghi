@@ -8,6 +8,7 @@ import {
   deleteComment,
   setCommentLike,
 } from "@/lib/comments";
+import { getCommentMode } from "@/lib/settings";
 import { getOrCreateVisitorId } from "@/lib/visitor";
 
 export type CommentActionState = {
@@ -27,10 +28,16 @@ export async function createCommentAction(
   const parentRaw = String(formData.get("parentId") ?? "").trim();
   const parentId = parentRaw ? Number(parentRaw) : null;
   const isAdmin = await isAdminAuthenticated();
+  const mode = await getCommentMode();
 
   if (!postSlug) return { error: "پست نامعتبر است." };
+  if (mode === "closed" && !isAdmin) {
+    return { error: "ثبت نظر در حال حاضر غیرفعال است." };
+  }
   if (!name) return { error: "نام الزامی است." };
   if (!body) return { error: "متن نظر الزامی است." };
+
+  const approved = isAdmin || mode === "open";
 
   try {
     await createComment({
@@ -39,7 +46,7 @@ export async function createCommentAction(
       body,
       parentId:
         parentId != null && Number.isFinite(parentId) ? parentId : null,
-      approved: isAdmin,
+      approved,
     });
   } catch (err) {
     console.error(err);
@@ -50,15 +57,15 @@ export async function createCommentAction(
 
   // Only revalidate the post when the comment is visible (approved).
   // Revalidating pending comments remounts the form and wipes the success message.
-  if (isAdmin) {
+  if (approved) {
     revalidatePath(`/${postSlug}`);
   }
   revalidatePath("/admin/comments");
   revalidatePath("/admin");
   return {
     ok: true,
-    approved: isAdmin,
-    message: isAdmin
+    approved,
+    message: approved
       ? "نظر شما ثبت و نمایش داده شد."
       : "نظر شما ثبت شد و پس از تأیید نمایش داده می‌شود.",
   };

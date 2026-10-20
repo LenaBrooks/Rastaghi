@@ -73,7 +73,27 @@ export const SETTING_DEFS = [
     defaultValue: DEFAULT_FONT_ID,
     type: "select" as const,
   },
+  {
+    key: "comments.mode",
+    label: "وضعیت نظرات",
+    group: "نظرات",
+    defaultValue: "moderation",
+    type: "select" as const,
+    options: [
+      { value: "moderation", label: "نیاز به تأیید" },
+      { value: "open", label: "باز — بدون تأیید" },
+      { value: "closed", label: "بسته — ثبت نظر غیرفعال" },
+    ],
+  },
 ] as const;
+
+export const COMMENT_MODES = ["moderation", "open", "closed"] as const;
+export type CommentMode = (typeof COMMENT_MODES)[number];
+
+export function resolveCommentMode(raw: string | undefined | null): CommentMode {
+  if (raw === "open" || raw === "closed" || raw === "moderation") return raw;
+  return "moderation";
+}
 
 export type SettingKey = (typeof SETTING_DEFS)[number]["key"];
 
@@ -99,7 +119,11 @@ export function getSettingDefs(): SettingDef[] {
       type: d.type,
     };
     if (d.type === "select") {
-      base.options = fontOptions;
+      if ("options" in d && d.options) {
+        base.options = [...d.options];
+      } else if (FONT_KEYS.has(d.key)) {
+        base.options = fontOptions;
+      }
     }
     return base;
   });
@@ -131,9 +155,13 @@ export async function getSettingsMap(): Promise<Record<string, string>> {
   `) as { key: string; value: string }[];
 
   for (const row of rows) {
-    map[row.key] = FONT_KEYS.has(row.key)
-      ? resolveFontId(row.value)
-      : row.value;
+    if (FONT_KEYS.has(row.key)) {
+      map[row.key] = resolveFontId(row.value);
+    } else if (row.key === "comments.mode") {
+      map[row.key] = resolveCommentMode(row.value);
+    } else {
+      map[row.key] = row.value;
+    }
   }
   return map;
 }
@@ -167,6 +195,9 @@ export async function setSettings(
     if (FONT_KEYS.has(key)) {
       next = resolveFontId(next);
     }
+    if (key === "comments.mode") {
+      next = resolveCommentMode(next);
+    }
     await sql()`
       INSERT INTO site_settings (key, value, updated_at)
       VALUES (${key}, ${next}, NOW())
@@ -175,4 +206,9 @@ export async function setSettings(
         updated_at = NOW()
     `;
   }
+}
+
+export async function getCommentMode(): Promise<CommentMode> {
+  const map = await getSettingsMap();
+  return resolveCommentMode(map["comments.mode"]);
 }

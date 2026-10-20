@@ -2303,6 +2303,43 @@ button.admin-comment-approve:hover {
   margin: 0;
 }
 
+.admin-settings-media-link {
+  display: flex;
+  align-items: center;
+  gap: 0.85em;
+  width: 100%;
+  margin: 0;
+  padding: 0.85em 1em;
+  border: 1px solid var(--hs-line);
+  border-radius: var(--border-radius);
+  background: var(--hs-soft);
+  color: var(--hs-fg);
+  text-decoration: none;
+}
+
+.admin-settings-media-link:hover {
+  background: color-mix(in oklch, var(--primary) 10%, var(--hs-soft));
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--hs-line));
+}
+
+.admin-settings-media-link > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  min-width: 0;
+}
+
+.admin-settings-media-link strong {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.admin-settings-media-link svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
 .theme-toggle-settings {
   display: flex;
   align-items: center;
@@ -3723,6 +3760,274 @@ button.admin-comment-approve:hover {
   color: var(--hs-on-invert) !important;
 }
 
+.admin-text-btn-danger {
+  color: #b00020 !important;
+  border-color: color-mix(in oklch, #b00020 35%, var(--hs-line));
+}
+
+.admin-text-btn-danger:hover {
+  background: color-mix(in oklch, #b00020 10%, transparent);
+  color: #8a0018 !important;
+}
+
+/* —— Admin media manager —— */
+.admin-media {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15em;
+}
+
+.admin-media-usage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25em 1.75em;
+  padding: 1em;
+  border: 1px solid var(--hs-line);
+  border-radius: var(--border-radius);
+  background: var(--hs-soft);
+}
+
+.admin-media-chart {
+  position: relative;
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.admin-media-chart-hole {
+  position: absolute;
+  inset: 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  border-radius: 50%;
+  background: var(--hs-bg);
+  color: var(--hs-fg);
+}
+
+.admin-media-chart-hole strong {
+  font-size: 1.25em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.admin-media-chart-hole span {
+  font-size: 0.78em;
+  color: var(--hs-muted);
+}
+
+.admin-media-usage-meta {
+  display: grid;
+  gap: 0.35em 1.25em;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  flex: 1;
+  min-width: 12rem;
+}
+
+.admin-media-usage-meta p {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  margin: 0;
+}
+
+.admin-media-usage-meta strong {
+  font-weight: 600;
+}
+
+.admin-media-usage-legend {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45em 0.85em;
+  margin-top: 0.25em;
+  font-size: 0.88em;
+  color: var(--hs-muted);
+}
+
+.admin-media-dot {
+  width: 0.65em;
+  height: 0.65em;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.admin-media-dot.is-used {
+  background: hsl(var(--hue), 55%, 42%);
+}
+
+.admin-media-dot.is-free {
+  background: color-mix(in oklch, var(--text) 18%, transparent);
+}
+
+.admin-media-tabs {
+  display: flex;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+
+.admin-media-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.5em 0.85em;
+  border: 1px solid var(--hs-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hs-muted);
+  font: inherit;
+  font-size: 0.92em;
+  cursor: pointer;
+}
+
+.admin-media-tab.is-active {
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--hs-line));
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.admin-media-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+  align-items: center;
+}
+
+.admin-media-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+}
+
+.admin-media-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 0.65em 0.7em;
+  border: 1px solid var(--hs-line);
+  border-radius: var(--border-radius);
+  background: var(--hs-bg);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.admin-media-row.is-selected {
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--hs-line));
+  background: color-mix(in oklch, var(--primary) 8%, var(--hs-bg));
+}
+
+.admin-media-check {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.admin-media-check input {
+  width: 1.05em;
+  height: 1.05em;
+  accent-color: hsl(var(--hue), 55%, 42%);
+}
+
+.admin-media-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex-shrink: 0;
+  border-radius: calc(var(--border-radius) - 2px);
+  background: var(--hs-soft);
+  color: var(--primary);
+  overflow: hidden;
+}
+
+.admin-media-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-media-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.admin-media-name {
+  font-weight: 600;
+  font-size: 0.95em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-media-meta {
+  font-size: 0.82em;
+  color: var(--hs-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-media-more {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.25em;
+}
+
+.admin-media-sheet-title {
+  font-size: 1em !important;
+  overflow-wrap: anywhere;
+}
+
+.admin-media-details {
+  display: grid;
+  gap: 0.65em;
+  margin: 0.5em 0 1em;
+}
+
+.admin-media-details > div {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.5em;
+  align-items: baseline;
+}
+
+.admin-media-details dt {
+  margin: 0;
+  color: var(--hs-muted);
+  font-size: 0.88em;
+}
+
+.admin-media-details dd {
+  margin: 0;
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+
+.admin-media-public-id {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82em;
+}
+
+.admin-media-sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
 .admin-root .button {
   background-color: var(--hs-invert);
   color: var(--hs-on-invert);
@@ -4087,10 +4392,18 @@ button.admin-comment-approve:hover {
   color: var(--text-muted);
 }
 
-.comments-empty {
+.comments-empty,
+.comments-closed {
   margin: 1.25em 0 0;
   color: var(--text-muted);
   font-size: 1.1em;
+}
+
+.comments-closed {
+  margin: 0 0 1em;
+  padding: 0.85em 1em;
+  border-radius: var(--border-radius);
+  background: color-mix(in oklch, var(--text) 6%, transparent);
 }
 
 .comment-form {

@@ -48,6 +48,7 @@ type CommentItemProps = {
   comment: CommentNode;
   postSlug: string;
   isAdmin: boolean;
+  canReply?: boolean;
   onChanged: () => void;
 };
 
@@ -55,6 +56,7 @@ export function CommentItem({
   comment,
   postSlug,
   isAdmin,
+  canReply = true,
   onChanged,
 }: CommentItemProps) {
   const [replying, setReplying] = useState(false);
@@ -218,20 +220,22 @@ export function CommentItem({
                 <span>{toPersianDigits(likes)}</span>
               </IconTooltip>
 
-              <IconTooltip
-                label="پاسخ"
-                render={
-                  <button
-                    type="button"
-                    className="comment-reply-btn"
-                    onClick={() => setReplying((v) => !v)}
-                    aria-label="پاسخ"
-                    aria-pressed={replying}
-                  />
-                }
-              >
-                <ReplyIcon size={15} strokeWidth={1.75} aria-hidden />
-              </IconTooltip>
+              {canReply ? (
+                <IconTooltip
+                  label="پاسخ"
+                  render={
+                    <button
+                      type="button"
+                      className="comment-reply-btn"
+                      onClick={() => setReplying((v) => !v)}
+                      aria-label="پاسخ"
+                      aria-pressed={replying}
+                    />
+                  }
+                >
+                  <ReplyIcon size={15} strokeWidth={1.75} aria-hidden />
+                </IconTooltip>
+              ) : null}
             </div>
           </div>
         </header>
@@ -262,7 +266,7 @@ export function CommentItem({
           ) : null}
         </footer>
 
-        {replying ? (
+        {replying && canReply ? (
           <CommentForm
             postSlug={postSlug}
             parentId={comment.id}
@@ -365,6 +369,7 @@ export function CommentItem({
               comment={child}
               postSlug={postSlug}
               isAdmin={isAdmin}
+              canReply={canReply}
               onChanged={onChanged}
             />
           ))}

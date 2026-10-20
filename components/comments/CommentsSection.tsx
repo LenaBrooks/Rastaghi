@@ -5,6 +5,7 @@ import { CommentForm } from "@/components/comments/CommentForm";
 import { CommentItem } from "@/components/comments/CommentItem";
 import { MessageCircleIcon } from "@/components/lucide/MessageCircleIcon";
 import type { CommentNode } from "@/lib/comments";
+import type { CommentMode } from "@/lib/settings";
 import { toPersianDigits } from "@/lib/persian";
 
 type CommentsSectionProps = {
@@ -12,6 +13,7 @@ type CommentsSectionProps = {
   tree: CommentNode[];
   totalCount: number;
   isAdmin: boolean;
+  commentMode: CommentMode;
 };
 
 export function CommentsSection({
@@ -19,8 +21,10 @@ export function CommentsSection({
   tree,
   totalCount,
   isAdmin,
+  commentMode,
 }: CommentsSectionProps) {
   const router = useRouter();
+  const canComment = commentMode !== "closed" || isAdmin;
 
   function refresh() {
     router.refresh();
@@ -42,13 +46,21 @@ export function CommentsSection({
         ) : null}
       </h2>
 
-      <CommentForm postSlug={postSlug} onSuccess={refresh} />
+      {commentMode === "closed" && !isAdmin ? (
+        <p className="comments-closed" role="status">
+          ثبت نظر در حال حاضر بسته است.
+        </p>
+      ) : (
+        <CommentForm postSlug={postSlug} onSuccess={refresh} />
+      )}
 
       {tree.length === 0 ? (
         <p className="comments-empty">
-          {isAdmin
-            ? "هنوز نظری نیست."
-            : "هنوز نظری ثبت نشده. اولین نفر باشید."}
+          {commentMode === "closed" && !isAdmin
+            ? "نظری برای نمایش نیست."
+            : isAdmin
+              ? "هنوز نظری نیست."
+              : "هنوز نظری ثبت نشده. اولین نفر باشید."}
         </p>
       ) : (
         <ul className="comment-list">
@@ -58,6 +70,7 @@ export function CommentsSection({
               comment={node}
               postSlug={postSlug}
               isAdmin={isAdmin}
+              canReply={canComment}
               onChanged={refresh}
             />
           ))}

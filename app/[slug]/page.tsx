@@ -14,6 +14,7 @@ import {
   getCommentsForPost,
 } from "@/lib/comments";
 import { getHomeNavItems } from "@/lib/home-data";
+import { getCommentMode } from "@/lib/settings";
 import {
   getPostBySlug,
   getPosts,
@@ -74,10 +75,11 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound();
 
   const html = post.html;
-  const [related, visitorId, navItems] = await Promise.all([
+  const [related, visitorId, navItems, commentMode] = await Promise.all([
     getRelatedPosts(post),
     peekVisitorId(),
     getHomeNavItems(),
+    getCommentMode(),
   ]);
   const isAdmin = await isAdminAuthenticated();
   const flatComments = await getCommentsForPost(slug, visitorId);
@@ -187,6 +189,7 @@ export default async function PostPage({ params }: Props) {
             tree={commentTree}
             totalCount={commentCount}
             isAdmin={isAdmin}
+            commentMode={commentMode}
           />
         </div>
       </article>
