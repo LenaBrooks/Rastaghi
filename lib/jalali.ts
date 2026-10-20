@@ -39,26 +39,52 @@ const FORMAT_CLASSES: Record<string, string> = {
   "%M": "minute",
 };
 
+/** Parse wall-clock ISO as UTC so %H/%M never shift by +03:30. */
 function parseDateInput(dateInput: string | Date): Date {
-  if (typeof dateInput !== "string") return dateInput;
+  if (typeof dateInput !== "string") {
+    return new Date(
+      Date.UTC(
+        dateInput.getUTCFullYear(),
+        dateInput.getUTCMonth(),
+        dateInput.getUTCDate(),
+        dateInput.getUTCHours(),
+        dateInput.getUTCMinutes(),
+        dateInput.getUTCSeconds(),
+      ),
+    );
+  }
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
     const [y, m, d] = dateInput.split("-").map(Number);
-    return new Date(y, (m ?? 1) - 1, d ?? 1, 12, 0, 0);
+    return new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1, 12, 0, 0));
   }
   const match = dateInput.match(
     /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/,
   );
   if (match) {
     return new Date(
-      Number(match[1]),
-      Number(match[2]) - 1,
-      Number(match[3]),
-      Number(match[4]),
-      Number(match[5]),
-      Number(match[6] ?? 0),
+      Date.UTC(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4]),
+        Number(match[5]),
+        Number(match[6] ?? 0),
+      ),
     );
   }
-  return new Date(dateInput);
+  const parsed = new Date(dateInput);
+  return Number.isNaN(parsed.getTime())
+    ? new Date()
+    : new Date(
+        Date.UTC(
+          parsed.getUTCFullYear(),
+          parsed.getUTCMonth(),
+          parsed.getUTCDate(),
+          parsed.getUTCHours(),
+          parsed.getUTCMinutes(),
+          parsed.getUTCSeconds(),
+        ),
+      );
 }
 
 function formatToken(spec: string, time: Date, jy: number, jm: number, jd: number, weekday: number): string {
@@ -81,9 +107,10 @@ function formatToken(spec: string, time: Date, jy: number, jm: number, jd: numbe
     case "%m":
       return String(jm).padStart(2, "0");
     case "%H":
-      return String(time.getHours()).padStart(2, "0");
+      // Wall-clock hours (UTC parts — matches how we store author time)
+      return String(time.getUTCHours()).padStart(2, "0");
     case "%M":
-      return String(time.getMinutes()).padStart(2, "0");
+      return String(time.getUTCMinutes()).padStart(2, "0");
     default:
       return spec;
   }
@@ -135,11 +162,11 @@ export function formatJalali(
 ): string {
   const time = parseDateInput(dateInput);
   const [jy, jm, jd] = gregorianToJalali(
-    time.getFullYear(),
-    time.getMonth() + 1,
-    time.getDate(),
+    time.getUTCFullYear(),
+    time.getUTCMonth() + 1,
+    time.getUTCDate(),
   );
-  const weekday = (time.getDay() + 1) % 7;
+  const weekday = (time.getUTCDay() + 1) % 7;
 
   const result = format.replace(/%[AaBbdeYymHM]/g, (spec) =>
     formatToken(spec, time, jy, jm, jd, weekday),
@@ -154,11 +181,11 @@ export function jalaliDateHtml(
 ): { datetime: string; title: string; html: string } {
   const time = parseDateInput(dateInput);
   const [jy, jm, jd] = gregorianToJalali(
-    time.getFullYear(),
-    time.getMonth() + 1,
-    time.getDate(),
+    time.getUTCFullYear(),
+    time.getUTCMonth() + 1,
+    time.getUTCDate(),
   );
-  const weekday = (time.getDay() + 1) % 7;
+  const weekday = (time.getUTCDay() + 1) % 7;
 
   const html = format.replace(/%[AaBbdeYymHM]/g, (spec) => {
     const value = formatToken(spec, time, jy, jm, jd, weekday);

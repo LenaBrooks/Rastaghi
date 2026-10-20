@@ -1,30 +1,19 @@
-import { formatJalali, jalaliDateHtml } from "@/lib/jalali";
+import { formatJalali } from "@/lib/jalali";
 
 type JalaliDateProps = {
   date: string;
   format?: string;
-  /** Plain text date (no per-token spans) — safer in flex meta rows. */
-  plain?: boolean;
 };
 
+/** One-line jalali date — no per-token spans. */
 export function JalaliDate({
   date,
   format = "%d %b %Y",
-  plain = false,
 }: JalaliDateProps) {
-  const { datetime, title, html } = jalaliDateHtml(date, format);
-  if (plain) {
-    return (
-      <time dateTime={datetime} title={title}>
-        {formatJalali(date, format)}
-      </time>
-    );
-  }
+  const text = formatJalali(date, format);
   return (
-    <time
-      dateTime={datetime}
-      title={title}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <time dateTime={date} title={text}>
+      {text}
+    </time>
   );
 }

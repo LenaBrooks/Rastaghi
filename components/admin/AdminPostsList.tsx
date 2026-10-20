@@ -11,7 +11,7 @@ import {
 import { AdminIconLink } from "@/components/admin/AdminIconLink";
 import { ConfirmDelete } from "@/components/admin/ConfirmDelete";
 import { IconTooltip } from "@/components/IconTooltip";
-import { JalaliDate } from "@/components/JalaliDate";
+import { formatJalali } from "@/lib/jalali";
 import { EyeIcon } from "@/components/lucide/EyeIcon";
 import { EyeOffIcon } from "@/components/lucide/EyeOffIcon";
 import { PencilIcon } from "@/components/lucide/PencilIcon";
@@ -321,7 +321,7 @@ export function AdminPostsList({ posts }: AdminPostsListProps) {
                 )}
               </span>
               <span className="admin-posts-mobile-date">
-                <JalaliDate date={post.date} format="%d %b %Y - %H:%M" />
+                {formatJalali(post.date, "%d %b %Y - %H:%M")}
               </span>
             </button>
           </li>
@@ -352,7 +352,7 @@ export function AdminPostsList({ posts }: AdminPostsListProps) {
                 )}
               </td>
               <td className="admin-table-date">
-                <JalaliDate date={post.date} format="%d %b %Y - %H:%M" />
+                {formatJalali(post.date, "%d %b %Y - %H:%M")}
               </td>
               <td className="admin-table-actions admin-row-actions">
                 <AdminIconLink
@@ -462,10 +462,7 @@ export function AdminPostsList({ posts }: AdminPostsListProps) {
                   <div>
                     <dt>تاریخ انتشار</dt>
                     <dd>
-                      <JalaliDate
-                        date={sheetPost.date}
-                        format="%d %b %Y - %H:%M"
-                      />
+                      {formatJalali(sheetPost.date, "%d %b %Y - %H:%M")}
                     </dd>
                   </div>
                   <div>

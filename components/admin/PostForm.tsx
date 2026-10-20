@@ -220,11 +220,20 @@ export function PostForm({
     setOrigin(window.location.origin);
   }, []);
 
+  const isNewPost = !post;
+
   useEffect(() => {
+    // «پست جدید» always starts blank. Unfinished work is a DB draft in the list.
+    if (isNewPost) {
+      clearDraft(storageKey);
+      setHydrated(true);
+      return;
+    }
+
     const draft = readDraft(storageKey);
     if (draft) {
       setTitle(draft.title);
-      setSlug(draft.slug || nextNumericSlug(existingSlugs));
+      setSlug(draft.slug || post.slug);
       setBody(draft.body);
       setTags(normalizeTags(draft.tags));
       setCategory(draft.category);
@@ -239,10 +248,12 @@ export function PostForm({
       if (draft.dbSlug) dbSlugRef.current = draft.dbSlug;
     }
     setHydrated(true);
-  }, [storageKey, existingSlugs]);
+  }, [storageKey, isNewPost, post?.slug]);
 
   useEffect(() => {
     if (!hydrated) return;
+    // Session draft only for edit pages (resume after soft nav).
+    if (isNewPost) return;
     writeDraft(storageKey, {
       title,
       slug,
@@ -257,6 +268,7 @@ export function PostForm({
     });
   }, [
     hydrated,
+    isNewPost,
     storageKey,
     title,
     slug,
@@ -268,8 +280,8 @@ export function PostForm({
     step,
   ]);
 
-  // Soft leave (e.g. پست‌ها): save DB draft, keep session so form restores.
-  // Hard refresh / tab close: save DB draft and clear the form.
+  // Leave page: save DB draft. New posts always clear session so «پست جدید» is blank.
+  // Edit soft-leave keeps session so returning to the same edit resumes mid-step.
   useEffect(() => {
     if (!hydrated) return;
 
@@ -351,7 +363,7 @@ export function PostForm({
         return;
       }
 
-      // Soft leave: keep session, remember DB slug for later updates.
+      // Soft leave on edit: keep session, remember DB slug for later updates.
       void fetch("/api/admin/autosave-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -381,13 +393,18 @@ export function PostForm({
         });
     }
 
+    /** New: always clear session. Edit soft-nav: keep session. Hard leave: clear. */
+    function shouldClearLocal(): boolean {
+      return isNewPost || !softNavigation;
+    }
+
     function onPageHide(event: PageTransitionEvent) {
       if (event.persisted) return;
-      flushToDatabaseDraft(!softNavigation);
+      flushToDatabaseDraft(shouldClearLocal());
     }
 
     function onBeforeUnload() {
-      if (softNavigation) return;
+      if (softNavigation && !isNewPost) return;
       flushToDatabaseDraft(true);
     }
 
@@ -407,10 +424,34 @@ export function PostForm({
       if (softNavTimer) clearTimeout(softNavTimer);
       // Soft nav may unmount before pagehide — still persist draft.
       if (softNavigation && !didFlush) {
-        flushToDatabaseDraft(false);
+        flushToDatabaseDraft(isNewPost);
       }
     };
-  }, [hydrated, storageKey, post]);
+  }, [hydrated, storageKey, post, isNewPost]);
+
+  function resetNewForm() {
+    if (!isNewPost) return;
+    clearDraft(storageKey);
+    dbSlugRef.current = undefined;
+    submittedRef.current = false;
+    setStep(1);
+    setStepError("");
+    setEditorPreview(false);
+    setTitle("");
+    setSlug(nextNumericSlug(existingSlugs));
+    setBody("");
+    setTags([]);
+    setTagInput("");
+    setSlugEditing(false);
+    setCategory("");
+    setFeatured(false);
+    setDate(new Date());
+    setTimeSet(true);
+    setDateOpen(false);
+    setTimeOpen(false);
+  }
+
+  const hasFormContent = Boolean(title.trim() || body.trim() || tags.length > 0);
 
   const [state, formAction, pending] = useActionState(
     async (
@@ -510,36 +551,53 @@ export function PostForm({
     >
       <div className="admin-toolbar admin-toolbar-editor-head">
         <AdminPageTitle title={pageTitle} />
-        {step === 2 ? (
-          <IconTooltip
-            label={
-              editorPreview ? "بازگشت به ویرایش" : "پیش‌نمایش (استایل پست)"
-            }
-            side="bottom"
-            render={
-              <button
-                type="button"
-                className={
-                  editorPreview
-                    ? "admin-icon-btn admin-editor-preview-btn is-active"
-                    : "admin-icon-btn admin-editor-preview-btn"
-                }
-                aria-label={
-                  editorPreview ? "بازگشت به ویرایش" : "پیش‌نمایش"
-                }
-                aria-pressed={editorPreview}
-                onClick={() => setEditorPreview((v) => !v)}
-              />
-            }
-          >
-            {editorPreview ? (
-              <EyeOffIcon size={18} strokeWidth={1.75} aria-hidden />
-            ) : (
-              <EyeIcon size={18} strokeWidth={1.75} aria-hidden />
-            )}
-          </IconTooltip>
-        ) : null}
+        <div className="admin-editor-head-actions">
+          {isNewPost && hasFormContent ? (
+            <button
+              type="button"
+              className="admin-text-btn"
+              onClick={resetNewForm}
+            >
+              شروع تازه
+            </button>
+          ) : null}
+          {step === 2 ? (
+            <IconTooltip
+              label={
+                editorPreview ? "بازگشت به ویرایش" : "پیش‌نمایش (استایل پست)"
+              }
+              side="bottom"
+              render={
+                <button
+                  type="button"
+                  className={
+                    editorPreview
+                      ? "admin-icon-btn admin-editor-preview-btn is-active"
+                      : "admin-icon-btn admin-editor-preview-btn"
+                  }
+                  aria-label={
+                    editorPreview ? "بازگشت به ویرایش" : "پیش‌نمایش"
+                  }
+                  aria-pressed={editorPreview}
+                  onClick={() => setEditorPreview((v) => !v)}
+                />
+              }
+            >
+              {editorPreview ? (
+                <EyeOffIcon size={18} strokeWidth={1.75} aria-hidden />
+              ) : (
+                <EyeIcon size={18} strokeWidth={1.75} aria-hidden />
+              )}
+            </IconTooltip>
+          ) : null}
+        </div>
       </div>
+      {isNewPost ? (
+        <p className="admin-muted admin-new-draft-hint">
+          با خروج، پیش‌نویس در فهرست پست‌ها می‌ماند (از آنجا حذف کن). «شروع تازه»
+          فقط همین فرم را خالی می‌کند.
+        </p>
+      ) : null}
 
       <fieldset
         disabled={pending || categories.length === 0}

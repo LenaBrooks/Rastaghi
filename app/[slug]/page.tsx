@@ -109,7 +109,7 @@ export default async function PostPage({ params }: Props) {
                 className="shahin-post-meta-icon"
                 aria-hidden
               />
-              <JalaliDate date={post.date} format="%d %b %Y" plain />
+              <JalaliDate date={post.date} format="%d %b %Y" />
             </span>
             <span className="shahin-post-meta-item">
               <UserIcon

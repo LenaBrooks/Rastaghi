@@ -66,34 +66,47 @@ function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-/** Normalize DB/date values to local `YYYY-MM-DDTHH:mm`. */
+/**
+ * Wall-clock `YYYY-MM-DDTHH:mm` (no TZ shift).
+ * Posts store author-picked local clock as TIMESTAMPTZ +00:00; Neon may return
+ * a Date or `...Z` string — never use local getHours() (Iran +03:30 would turn
+ * 03:08 into 06:38).
+ */
 function formatDate(value: string | Date): string {
-  let d: Date;
   if (typeof value === "string") {
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const [y, m, day] = value.split("-").map(Number);
-      d = new Date(y, (m ?? 1) - 1, day ?? 1, 12, 0, 0);
-    } else {
-      const match = value.match(
-        /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/,
-      );
-      if (match) {
-        d = new Date(
-          Number(match[1]),
-          Number(match[2]) - 1,
-          Number(match[3]),
-          Number(match[4]),
-          Number(match[5]),
-          Number(match[6] ?? 0),
-        );
-      } else {
-        d = new Date(value);
-      }
+      return `${value}T12:00`;
     }
-  } else {
-    d = value;
+    const match = value.match(
+      /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/,
+    );
+    if (match) {
+      return `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}`;
+    }
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return formatDateFromUtcParts(parsed);
+    }
+    return value;
   }
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  return formatDateFromUtcParts(value);
+}
+
+function formatDateFromUtcParts(d: Date): string {
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}T${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
+}
+
+/** Persist wall clock without session-TZ reinterpretation. */
+function toDbDate(wall: string): string {
+  const match = wall.trim().match(
+    /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/,
+  );
+  if (!match) return wall;
+  const day = match[1]!;
+  const h = match[2] ?? "12";
+  const min = match[3] ?? "00";
+  const sec = match[4] ?? "00";
+  return `${day}T${h}:${min}:${sec}+00:00`;
 }
 
 function mapPost(row: PostRow): Post {
@@ -147,12 +160,16 @@ export async function getPosts(
   if (!requireDbOrEmpty()) return [];
   const rows = options.includeDrafts
     ? ((await sql()`
-        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        SELECT slug, title,
+          to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+          tags, categories, excerpt, body, published, featured
         FROM posts
         ORDER BY date DESC, slug ASC
       `) as PostRow[])
     : ((await sql()`
-        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        SELECT slug, title,
+          to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+          tags, categories, excerpt, body, published, featured
         FROM posts
         WHERE published = TRUE
         ORDER BY date DESC, slug ASC
@@ -169,24 +186,32 @@ export async function getPostSummaries(
   const rows = options.includeDrafts
     ? withBody
       ? ((await sql()`
-          SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+          SELECT slug, title,
+            to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+            tags, categories, excerpt, body, published, featured
           FROM posts
           ORDER BY date DESC, slug ASC
         `) as PostSummaryRow[])
       : ((await sql()`
-          SELECT slug, title, date, tags, categories, excerpt, published, featured
+          SELECT slug, title,
+            to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+            tags, categories, excerpt, published, featured
           FROM posts
           ORDER BY date DESC, slug ASC
         `) as PostSummaryRow[])
     : withBody
       ? ((await sql()`
-          SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+          SELECT slug, title,
+            to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+            tags, categories, excerpt, body, published, featured
           FROM posts
           WHERE published = TRUE
           ORDER BY date DESC, slug ASC
         `) as PostSummaryRow[])
       : ((await sql()`
-          SELECT slug, title, date, tags, categories, excerpt, published, featured
+          SELECT slug, title,
+            to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+            tags, categories, excerpt, published, featured
           FROM posts
           WHERE published = TRUE
           ORDER BY date DESC, slug ASC
@@ -215,13 +240,17 @@ export async function getPostBySlug(
   if (!requireDbOrEmpty()) return null;
   const rows = options.includeDrafts
     ? ((await sql()`
-        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        SELECT slug, title,
+          to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+          tags, categories, excerpt, body, published, featured
         FROM posts
         WHERE slug = ${slug}
         LIMIT 1
       `) as PostRow[])
     : ((await sql()`
-        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        SELECT slug, title,
+          to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+          tags, categories, excerpt, body, published, featured
         FROM posts
         WHERE slug = ${slug} AND published = TRUE
         LIMIT 1
@@ -287,7 +316,9 @@ export async function getPostsByTag(tag: string): Promise<PostSummary[]> {
   if (!requireDbOrEmpty()) return [];
   const decoded = decodeURIComponent(tag);
   const rows = (await sql()`
-    SELECT slug, title, date, tags, categories, excerpt, published, featured
+    SELECT slug, title,
+      to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+      tags, categories, excerpt, published, featured
     FROM posts
     WHERE ${decoded} = ANY (tags) AND published = TRUE
     ORDER BY date DESC, slug ASC
@@ -302,7 +333,9 @@ export async function getPostsByCategory(
   const name = decodeURIComponent(category).trim();
   if (!name) return [];
   const rows = (await sql()`
-    SELECT slug, title, date, tags, categories, excerpt, published, featured
+    SELECT slug, title,
+      to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI') AS date,
+      tags, categories, excerpt, published, featured
     FROM posts
     WHERE ${name} = ANY (categories) AND published = TRUE
     ORDER BY date DESC, slug ASC
@@ -418,12 +451,13 @@ type PostInput = {
 export async function insertPost(input: PostInput): Promise<void> {
   const published = input.published !== false;
   const featured = input.featured === true;
+  const date = toDbDate(input.date);
   await sql()`
     INSERT INTO posts (slug, title, date, tags, categories, excerpt, body, published, featured)
     VALUES (
       ${input.slug},
       ${input.title},
-      ${input.date},
+      ${date},
       ${input.tags ?? []},
       ${input.categories ?? []},
       ${input.excerpt ?? null},
@@ -441,11 +475,12 @@ export async function updatePost(
 ): Promise<void> {
   const published = input.published !== false;
   const featured = input.featured === true;
+  const date = toDbDate(input.date);
   await sql()`
     UPDATE posts SET
       slug = ${input.slug},
       title = ${input.title},
-      date = ${input.date},
+      date = ${date},
       tags = ${input.tags ?? []},
       categories = ${input.categories ?? []},
       excerpt = ${input.excerpt ?? null},

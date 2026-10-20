@@ -327,11 +327,7 @@ export function AdminMediaManager({
                     <span className="admin-media-meta">
                       {formatBytesFa(item.bytes)}
                       <span aria-hidden> · </span>
-                      <JalaliDate
-                        date={item.createdAt}
-                        format="%d %b %Y"
-                        plain
-                      />
+                      <JalaliDate date={item.createdAt} format="%d %b %Y" />
                       {item.width && item.height ? (
                         <span className="admin-media-dims">
                           <span aria-hidden> · </span>
@@ -409,7 +405,6 @@ export function AdminMediaManager({
                     <JalaliDate
                       date={sheetItem.createdAt}
                       format="%d %b %Y — %H:%M"
-                      plain
                     />
                   </dd>
                 </div>
