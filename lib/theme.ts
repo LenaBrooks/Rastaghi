@@ -22,6 +22,28 @@ export function resolveDark(pref: ThemePref = readThemePref()): boolean {
   return systemPrefersDark();
 }
 
+/** Keep browser chrome (address bar / PWA title bar) in sync with --bg. */
+export function syncBrowserThemeColor(): void {
+  const root = document.documentElement;
+  const bg = getComputedStyle(root).getPropertyValue("--bg").trim();
+  if (!bg) return;
+
+  const metas = document.querySelectorAll<HTMLMetaElement>(
+    'meta[name="theme-color"]',
+  );
+  if (metas.length === 0) {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = bg;
+    document.head.appendChild(meta);
+    return;
+  }
+
+  for (const meta of metas) {
+    meta.content = bg;
+  }
+}
+
 export function applyThemePref(pref: ThemePref): void {
   const root = document.documentElement;
   if (pref === "system") {
@@ -42,6 +64,7 @@ export function applyThemePref(pref: ThemePref): void {
   const dark = resolveDark(pref);
   root.classList.toggle("dark", dark);
   root.style.colorScheme = dark ? "dark" : "light";
+  syncBrowserThemeColor();
   window.dispatchEvent(new Event("themechange"));
 }
 

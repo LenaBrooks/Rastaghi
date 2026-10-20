@@ -9,6 +9,7 @@ import {
   nextThemePref,
   readThemePref,
   resolveDark,
+  syncBrowserThemeColor,
   themePrefLabel,
   type ThemePref,
 } from "@/lib/theme";
@@ -33,6 +34,7 @@ export function ThemeToggle({
       const nextPref = readThemePref();
       setPref(nextPref);
       setDark(resolveDark(nextPref));
+      syncBrowserThemeColor();
     }
 
     sync();
@@ -151,7 +153,10 @@ export function HueSlider() {
     function onInput(e: Event) {
       const value = (e.target as HTMLInputElement).value;
       document.documentElement.style.setProperty("--hue", value);
+      syncBrowserThemeColor();
     }
+
+    syncBrowserThemeColor();
     hueSlider.addEventListener("input", onInput);
 
     function onKey(e: KeyboardEvent) {
