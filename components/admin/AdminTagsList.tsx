@@ -200,9 +200,10 @@ export function AdminTagsList({ tags }: AdminTagsListProps) {
                   <SelectValue>ترتیب</SelectValue>
                 </SelectTrigger>
                 <SelectContent
+                  className="admin-posts-select-content shadow-none ring-0"
                   alignItemWithTrigger={false}
-                  side="bottom"
-                  className="admin-posts-select-content"
+                  align="start"
+                  sideOffset={6}
                 >
                   <SelectGroup>
                     {SORT_OPTIONS.map((option) => (
@@ -214,12 +215,13 @@ export function AdminTagsList({ tags }: AdminTagsListProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="admin-posts-controls-end">
+
+            <div className="admin-posts-page-size">
               <span
-                id="admin-tags-page-size-label"
                 className="admin-posts-page-size-label"
+                id="admin-tags-page-size-label"
               >
-                در صفحه
+                تعداد
               </span>
               <Select
                 items={PAGE_SIZES.map((size) => ({
@@ -234,15 +236,16 @@ export function AdminTagsList({ tags }: AdminTagsListProps) {
                 }}
               >
                 <SelectTrigger
-                  className="admin-posts-select-trigger admin-posts-page-size"
+                  className="admin-posts-select-trigger admin-posts-select-trigger-size"
                   aria-labelledby="admin-tags-page-size-label"
                 >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent
+                  className="admin-posts-select-content admin-posts-select-content-size shadow-none ring-0"
                   alignItemWithTrigger={false}
-                  side="bottom"
-                  className="admin-posts-select-content"
+                  align="start"
+                  sideOffset={6}
                 >
                   <SelectGroup>
                     {PAGE_SIZES.map((size) => (
@@ -261,7 +264,7 @@ export function AdminTagsList({ tags }: AdminTagsListProps) {
               <li key={item.id}>
                 <button
                   type="button"
-                  className="admin-posts-mobile-row"
+                  className="admin-posts-mobile-item"
                   onPointerDown={(event) => {
                     if (event.button !== 0) return;
                     startLongPress(item);
@@ -282,10 +285,12 @@ export function AdminTagsList({ tags }: AdminTagsListProps) {
                     {rowNumber(index)}
                   </span>
                   <span className="admin-posts-mobile-title">
-                    {formatTagLabel(item.name)}
-                    <span className="admin-cat-home-badge">
-                      {toPersianDigits(String(item.count))} پست
+                    <span className="admin-posts-mobile-title-text">
+                      {formatTagLabel(item.name)}
                     </span>
+                  </span>
+                  <span className="admin-posts-mobile-date">
+                    {toPersianDigits(String(item.count))} پست
                   </span>
                 </button>
               </li>

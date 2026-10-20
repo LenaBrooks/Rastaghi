@@ -7,7 +7,6 @@ import { FoldersIcon } from "@/components/lucide/FoldersIcon";
 import { ListIcon } from "@/components/lucide/ListIcon";
 import { PlusIcon } from "@/components/lucide/PlusIcon";
 import { SettingsIcon } from "@/components/lucide/SettingsIcon";
-import { TagsIcon } from "@/components/lucide/TagsIcon";
 
 const LINKS = [
   {
@@ -18,22 +17,16 @@ const LINKS = [
     icon: ListIcon,
   },
   {
-    href: "/admin/new",
-    label: "پست جدید",
-    match: (p: string) => p === "/admin/new",
-    icon: PlusIcon,
-  },
-  {
     href: "/admin/categories",
     label: "دسته‌ها",
     match: (p: string) => p.startsWith("/admin/categories"),
     icon: FoldersIcon,
   },
   {
-    href: "/admin/tags",
-    label: "برچسب‌ها",
-    match: (p: string) => p.startsWith("/admin/tags"),
-    icon: TagsIcon,
+    href: "/admin/new",
+    label: "پست جدید",
+    match: (p: string) => p === "/admin/new",
+    icon: PlusIcon,
   },
   {
     href: "/admin/settings",

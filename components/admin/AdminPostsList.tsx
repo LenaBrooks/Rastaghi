@@ -47,6 +47,7 @@ export type AdminPostItem = {
   categories: string[];
   tags: string[];
   wordCount: number;
+  charCount: number;
   published: boolean;
 };
 
@@ -440,7 +441,15 @@ export function AdminPostsList({ posts }: AdminPostsListProps) {
           {sheetPost ? (
             sheetView === "details" ? (
               <>
-                <SheetHeader className="admin-posts-sheet-header">
+                <SheetHeader className="admin-posts-sheet-header admin-posts-sheet-header--back">
+                  <button
+                    type="button"
+                    className="admin-posts-sheet-back"
+                    onClick={() => setSheetView("actions")}
+                    aria-label="بازگشت"
+                  >
+                    <ArrowRightIcon size={20} strokeWidth={1.75} />
+                  </button>
                   <SheetTitle className="admin-posts-sheet-title">
                     جزئیات
                   </SheetTitle>
@@ -472,15 +481,9 @@ export function AdminPostsList({ posts }: AdminPostsListProps) {
                     </dd>
                   </div>
                   <div>
-                    <dt>وضعیت</dt>
+                    <dt>تعداد حروف</dt>
                     <dd>
-                      {sheetPost.published ? "منتشرشده" : "پیش‌نویس"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>آدرس</dt>
-                    <dd className="latin-digits" dir="ltr" lang="en">
-                      /{sheetPost.slug}
+                      {toPersianDigits(sheetPost.charCount)} حرف
                     </dd>
                   </div>
                   {sheetPost.tags.length > 0 ? (
@@ -492,16 +495,6 @@ export function AdminPostsList({ posts }: AdminPostsListProps) {
                     </div>
                   ) : null}
                 </dl>
-                <div className="admin-posts-sheet-actions">
-                  <button
-                    type="button"
-                    className="admin-posts-sheet-btn"
-                    onClick={() => setSheetView("actions")}
-                  >
-                    <ArrowRightIcon size={18} strokeWidth={1.75} />
-                    بازگشت
-                  </button>
-                </div>
               </>
             ) : (
               <>

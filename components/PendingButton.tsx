@@ -40,6 +40,7 @@ export function PendingButton({
         ? "button admin-step-back"
         : "button",
     "pending-btn",
+    showPending ? "is-pending" : "",
     className,
   ]
     .filter(Boolean)
@@ -53,15 +54,16 @@ export function PendingButton({
       className={classes}
       disabled={isBusy}
       aria-busy={showPending || undefined}
+      aria-label={showPending ? pendingLabel ?? "لطفاً صبر کنید…" : undefined}
     >
+      <span className="pending-btn-label" aria-hidden={showPending || undefined}>
+        {children}
+      </span>
       {showPending ? (
-        <>
+        <span className="pending-btn-spinner" aria-hidden>
           <Spinner className="pending-spinner" />
-          <span>{pendingLabel ?? "لطفاً صبر کنید…"}</span>
-        </>
-      ) : (
-        children
-      )}
+        </span>
+      ) : null}
     </button>
   );
 }

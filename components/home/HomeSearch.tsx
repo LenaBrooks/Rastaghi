@@ -21,7 +21,8 @@ export function HomeSearch() {
   const [searched, setSearched] = useState(false);
 
   const focusInput = useEffectEvent(() => {
-    inputRef.current?.focus();
+    // preventScroll avoids iOS jumping/scrolling the page away on open
+    inputRef.current?.focus({ preventScroll: true });
   });
 
   useEffect(() => {
@@ -30,16 +31,27 @@ export function HomeSearch() {
 
   useEffect(() => {
     if (!open) return;
+
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") close();
     }
-    function onPointer(e: MouseEvent | PointerEvent) {
+
+    function onPointer(e: PointerEvent) {
       const el = rootRef.current;
-      if (el && !el.contains(e.target as Node)) setOpen(false);
+      if (!el) return;
+      const target = e.target as Node | null;
+      if (target && el.contains(target)) return;
+      close();
     }
+
+    // Defer so the opening tap itself does not immediately close the panel
+    const timer = window.setTimeout(() => {
+      document.addEventListener("pointerdown", onPointer);
+    }, 0);
+
     document.addEventListener("keydown", onKey);
-    document.addEventListener("pointerdown", onPointer);
     return () => {
+      window.clearTimeout(timer);
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointer);
     };
@@ -81,6 +93,13 @@ export function HomeSearch() {
     };
   }, [query, open]);
 
+  function close() {
+    setOpen(false);
+    setQuery("");
+    setResults([]);
+    setSearched(false);
+  }
+
   function toggle() {
     setOpen((v) => {
       if (v) {
@@ -100,6 +119,7 @@ export function HomeSearch() {
         aria-label={open ? "بستن جستجو" : "جستجو"}
         aria-expanded={open}
         aria-controls={panelId}
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={toggle}
       >
         {open ? (
@@ -110,7 +130,12 @@ export function HomeSearch() {
       </button>
 
       {open ? (
-        <div id={panelId} className="home-shahin-search-panel" role="search">
+        <div
+          id={panelId}
+          className="home-shahin-search-panel"
+          role="search"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
           <label className="sr-only" htmlFor={`${panelId}-input`}>
             جستجو در نوشته‌ها
           </label>
@@ -141,7 +166,7 @@ export function HomeSearch() {
                   <Link
                     href={`/${hit.slug}`}
                     className="home-shahin-search-hit"
-                    onClick={() => setOpen(false)}
+                    onClick={close}
                   >
                     <span className="home-shahin-search-hit-title">
                       {hit.title}

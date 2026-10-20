@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-function countWords(markdown: string): number {
-  const text = markdown
+function plainBodyText(markdown: string): string {
+  return markdown
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/`[^`]*`/g, " ")
     .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
@@ -19,8 +19,16 @@ function countWords(markdown: string): number {
     .replace(/[#>*_~\-=+[\](){}|!]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function countWords(markdown: string): number {
+  const text = plainBodyText(markdown);
   if (!text) return 0;
   return text.split(/\s+/).length;
+}
+
+function countChars(markdown: string): number {
+  return plainBodyText(markdown).replace(/\s/g, "").length;
 }
 
 export default async function AdminDashboardPage() {
@@ -32,6 +40,7 @@ export default async function AdminDashboardPage() {
     categories: post.categories ?? [],
     tags: post.tags ?? [],
     wordCount: countWords(post.body),
+    charCount: countChars(post.body),
     published: post.published,
   }));
 
