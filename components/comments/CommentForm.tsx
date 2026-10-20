@@ -114,12 +114,17 @@ export function CommentForm({
           name="body"
           required
           maxLength={4000}
-          rows={compact ? 3 : 4}
+          rows={compact ? 2 : 3}
           placeholder="متن پیام…"
         />
       </label>
 
       {state?.error ? <p className="comment-error">{state.error}</p> : null}
+      {state?.ok ? (
+        <p className="comment-success" role="status">
+          {state.message ?? "نظر شما ثبت شد ممنونم."}
+        </p>
+      ) : null}
 
       <div className="comment-form-actions">
         <PendingButton pendingLabel="در حال ارسال…">ارسال نظر</PendingButton>

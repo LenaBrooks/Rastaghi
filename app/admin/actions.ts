@@ -192,6 +192,7 @@ export async function setPostPublishedAction(
 function revalidateCategoryPaths() {
   revalidatePath("/admin/categories");
   revalidatePath("/categories");
+  revalidatePath("/category/[slug]", "page");
   revalidatePath("/admin/new");
   revalidatePath("/admin/[slug]/edit", "page");
   revalidatePath("/admin");
@@ -217,13 +218,14 @@ export async function createCategoryAction(
   requireAuthOrThrow(await isAdminAuthenticated());
   const name = String(formData.get("name") ?? "").trim();
   const showOnHome = String(formData.get("show_on_home") ?? "") === "on";
+  const showInHeader = String(formData.get("show_in_header") ?? "") === "on";
   const homeItemMode =
     String(formData.get("home_item_mode") ?? "title") === "body"
       ? "body"
       : "title";
   if (!name) return { error: "نام دسته‌بندی را وارد کن." };
   try {
-    await createCategory(name, showOnHome, homeItemMode);
+    await createCategory(name, showOnHome, homeItemMode, showInHeader);
   } catch (err) {
     console.error(err);
     return { error: "ساخت دسته‌بندی ناموفق بود (شاید تکراری است)." };
@@ -240,6 +242,7 @@ export async function updateCategoryAction(
   const id = Number(formData.get("id"));
   const name = String(formData.get("name") ?? "").trim();
   const showOnHome = String(formData.get("show_on_home") ?? "") === "on";
+  const showInHeader = String(formData.get("show_in_header") ?? "") === "on";
   const homeItemMode =
     String(formData.get("home_item_mode") ?? "title") === "body"
       ? "body"
@@ -247,7 +250,7 @@ export async function updateCategoryAction(
   if (!Number.isFinite(id)) return { error: "دسته نامعتبر است." };
   if (!name) return { error: "نام دسته‌بندی را وارد کن." };
   try {
-    await updateCategory(id, name, showOnHome, homeItemMode);
+    await updateCategory(id, name, showOnHome, homeItemMode, showInHeader);
   } catch (err) {
     console.error(err);
     return {
@@ -339,5 +342,6 @@ export async function saveSettingsAction(
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
   revalidatePath("/");
+  revalidatePath("/contact");
   return { ok: true };
 }

@@ -13,6 +13,7 @@ type CategoryFormProps = {
     id: number;
     name: string;
     showOnHome?: boolean;
+    showInHeader?: boolean;
     homeItemMode?: HomeItemMode;
   };
   onSuccess?: () => void;
@@ -75,6 +76,14 @@ export function CategoryForm({
             defaultChecked={category?.showOnHome === true}
           />
           <span>نمایش در صفحه اصلی</span>
+        </label>
+        <label className="admin-featured-check">
+          <input
+            type="checkbox"
+            name="show_in_header"
+            defaultChecked={category?.showInHeader === true}
+          />
+          <span>لینک در هدر</span>
         </label>
         <label>
           نمایش آیتم در صفحه اصلی

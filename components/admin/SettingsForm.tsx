@@ -55,6 +55,14 @@ export function SettingsForm({ defs, values }: SettingsFormProps) {
                       </option>
                     ))}
                   </select>
+                ) : def.type === "textarea" ? (
+                  <textarea
+                    name={def.key}
+                    rows={8}
+                    defaultValue={values[def.key] ?? def.defaultValue}
+                    placeholder={def.defaultValue}
+                    autoComplete="off"
+                  />
                 ) : (
                   <input
                     name={def.key}

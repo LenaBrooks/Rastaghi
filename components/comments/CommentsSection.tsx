@@ -45,7 +45,11 @@ export function CommentsSection({
       <CommentForm postSlug={postSlug} onSuccess={refresh} />
 
       {tree.length === 0 ? (
-        <p className="comments-empty">هنوز نظری ثبت نشده. اولین نفر باشید.</p>
+        <p className="comments-empty">
+          {isAdmin
+            ? "هنوز نظری نیست."
+            : "هنوز نظری ثبت نشده. اولین نفر باشید."}
+        </p>
       ) : (
         <ul className="comment-list">
           {tree.map((node) => (

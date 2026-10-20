@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { isAdminAuthenticated } from "@/lib/auth";
 import {
+  approveComment,
   createComment,
   deleteComment,
   setCommentLike,
@@ -12,6 +13,7 @@ import { getOrCreateVisitorId } from "@/lib/visitor";
 export type CommentActionState = {
   error?: string;
   ok?: boolean;
+  message?: string;
 };
 
 export async function createCommentAction(
@@ -23,6 +25,7 @@ export async function createCommentAction(
   const body = String(formData.get("body") ?? "").trim();
   const parentRaw = String(formData.get("parentId") ?? "").trim();
   const parentId = parentRaw ? Number(parentRaw) : null;
+  const isAdmin = await isAdminAuthenticated();
 
   if (!postSlug) return { error: "پست نامعتبر است." };
   if (!name) return { error: "نام الزامی است." };
@@ -35,6 +38,7 @@ export async function createCommentAction(
       body,
       parentId:
         parentId != null && Number.isFinite(parentId) ? parentId : null,
+      approved: isAdmin,
     });
   } catch (err) {
     console.error(err);
@@ -44,7 +48,22 @@ export async function createCommentAction(
   }
 
   revalidatePath(`/${postSlug}`);
-  return { ok: true };
+  return {
+    ok: true,
+    message: isAdmin
+      ? "نظر شما ثبت و نمایش داده شد."
+      : "نظر شما ثبت شد ممنونم.",
+  };
+}
+
+export async function approveCommentAction(formData: FormData): Promise<void> {
+  if (!(await isAdminAuthenticated())) {
+    throw new Error("Unauthorized");
+  }
+  const id = Number(formData.get("id"));
+  if (!Number.isFinite(id)) return;
+  const postSlug = await approveComment(id);
+  if (postSlug) revalidatePath(`/${postSlug}`);
 }
 
 export async function setCommentLikeAction(

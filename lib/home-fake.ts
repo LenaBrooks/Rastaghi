@@ -31,17 +31,3 @@ export type HomeNavItem = {
   pin?: boolean;
   dropdown?: boolean;
 };
-
-export const homeNav: HomeNavItem[] = [
-  { label: "خانه", href: "/" },
-  { label: "تازه‌ها", href: "#", pin: true },
-  { label: "نویسنده‌ساز", href: "#", dropdown: true },
-  { label: "اصول نویسندگی", href: "#" },
-  { label: "روزنویسی", href: "#" },
-  { label: "دانلود", href: "#" },
-  { label: "مدرسه نویسندگی", href: "#" },
-  { label: "تلگرام", href: "#" },
-  { label: "من", href: "#" },
-  { label: "گزارش نیک", href: "#" },
-  { label: "بایگانی", href: "#" },
-];

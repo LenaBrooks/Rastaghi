@@ -9,6 +9,7 @@ export type Category = {
   name: string;
   slug: string;
   showOnHome: boolean;
+  showInHeader: boolean;
   homeItemMode: HomeItemMode;
 };
 
@@ -25,6 +26,7 @@ function mapCategory(row: {
   name: string;
   slug: string;
   show_on_home?: boolean | null;
+  show_in_header?: boolean | null;
   home_item_mode?: string | null;
 }): Category {
   return {
@@ -32,6 +34,7 @@ function mapCategory(row: {
     name: row.name,
     slug: row.slug,
     showOnHome: row.show_on_home === true,
+    showInHeader: row.show_in_header === true,
     homeItemMode: resolveHomeItemMode(row.home_item_mode),
   };
 }
@@ -41,13 +44,18 @@ type CategoryRow = {
   name: string;
   slug: string;
   show_on_home: boolean | null;
+  show_in_header: boolean | null;
   home_item_mode: string | null;
 };
+
+export function categoryUrl(slug: string): string {
+  return `/category/${encodeURIComponent(slug)}`;
+}
 
 export async function getCategories(): Promise<Category[]> {
   if (!requireDb()) return [];
   const rows = (await sql()`
-    SELECT id, name, slug, show_on_home, home_item_mode
+    SELECT id, name, slug, show_on_home, show_in_header, home_item_mode
     FROM categories
     ORDER BY name ASC
   `) as CategoryRow[];
@@ -58,7 +66,7 @@ export async function getCategories(): Promise<Category[]> {
 export async function getHomeCategories(): Promise<Category[]> {
   if (!requireDb()) return [];
   const rows = (await sql()`
-    SELECT id, name, slug, show_on_home, home_item_mode
+    SELECT id, name, slug, show_on_home, show_in_header, home_item_mode
     FROM categories
     WHERE show_on_home = TRUE
     ORDER BY name ASC
@@ -66,23 +74,51 @@ export async function getHomeCategories(): Promise<Category[]> {
   return rows.map(mapCategory);
 }
 
+/** Categories flagged to appear in the home header nav. */
+export async function getHeaderCategories(): Promise<Category[]> {
+  if (!requireDb()) return [];
+  const rows = (await sql()`
+    SELECT id, name, slug, show_on_home, show_in_header, home_item_mode
+    FROM categories
+    WHERE show_in_header = TRUE
+    ORDER BY name ASC
+  `) as CategoryRow[];
+  return rows.map(mapCategory);
+}
+
+export async function getCategoryBySlug(
+  slug: string,
+): Promise<Category | null> {
+  if (!requireDb()) return null;
+  const decoded = decodeURIComponent(slug);
+  const rows = (await sql()`
+    SELECT id, name, slug, show_on_home, show_in_header, home_item_mode
+    FROM categories
+    WHERE slug = ${decoded} OR name = ${decoded}
+    LIMIT 1
+  `) as CategoryRow[];
+  return rows[0] ? mapCategory(rows[0]) : null;
+}
+
 export async function createCategory(
   name: string,
   showOnHome = false,
   homeItemMode: HomeItemMode = "title",
+  showInHeader = false,
 ): Promise<Category> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("نام دسته‌بندی خالی است.");
   const slug = slugifyTitle(trimmed);
   const mode = resolveHomeItemMode(homeItemMode);
   const rows = (await sql()`
-    INSERT INTO categories (name, slug, show_on_home, home_item_mode)
-    VALUES (${trimmed}, ${slug}, ${showOnHome}, ${mode})
+    INSERT INTO categories (name, slug, show_on_home, show_in_header, home_item_mode)
+    VALUES (${trimmed}, ${slug}, ${showOnHome}, ${showInHeader}, ${mode})
     ON CONFLICT (name) DO UPDATE SET
       name = EXCLUDED.name,
       show_on_home = EXCLUDED.show_on_home,
+      show_in_header = EXCLUDED.show_in_header,
       home_item_mode = EXCLUDED.home_item_mode
-    RETURNING id, name, slug, show_on_home, home_item_mode
+    RETURNING id, name, slug, show_on_home, show_in_header, home_item_mode
   `) as CategoryRow[];
   return mapCategory(rows[0]!);
 }
@@ -92,13 +128,14 @@ export async function updateCategory(
   name: string,
   showOnHome = false,
   homeItemMode: HomeItemMode = "title",
+  showInHeader = false,
 ): Promise<Category> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("نام دسته‌بندی خالی است.");
   if (!Number.isFinite(id)) throw new Error("دسته نامعتبر است.");
 
   const current = (await sql()`
-    SELECT id, name, slug, show_on_home, home_item_mode
+    SELECT id, name, slug, show_on_home, show_in_header, home_item_mode
     FROM categories WHERE id = ${id} LIMIT 1
   `) as CategoryRow[];
   if (!current[0]) throw new Error("دسته پیدا نشد.");
@@ -119,9 +156,10 @@ export async function updateCategory(
     SET name = ${trimmed},
         slug = ${slug},
         show_on_home = ${showOnHome},
+        show_in_header = ${showInHeader},
         home_item_mode = ${mode}
     WHERE id = ${id}
-    RETURNING id, name, slug, show_on_home, home_item_mode
+    RETURNING id, name, slug, show_on_home, show_in_header, home_item_mode
   `) as CategoryRow[];
 
   if (oldName !== trimmed) {

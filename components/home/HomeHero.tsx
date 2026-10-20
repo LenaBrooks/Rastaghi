@@ -1,18 +1,22 @@
 import Image from "next/image";
-import { homeHero } from "@/lib/home-fake";
+import type { HomeHeroContent } from "@/lib/home-data";
 
-export function HomeHero() {
+type HomeHeroProps = {
+  hero: HomeHeroContent;
+};
+
+export function HomeHero({ hero }: HomeHeroProps) {
   return (
     <section
       className="home-shahin-hero"
       aria-label="معرفی"
-      style={{ ["--hero-pattern" as string]: `url(${homeHero.pattern})` }}
+      style={{ ["--hero-pattern" as string]: `url(${hero.pattern})` }}
     >
       <div className="home-shahin-hero-inner">
         <div className="home-shahin-portrait-wrap">
           <Image
-            src={homeHero.portrait}
-            alt={homeHero.name}
+            src={hero.portrait}
+            alt={hero.name}
             width={370}
             height={590}
             priority
@@ -20,8 +24,8 @@ export function HomeHero() {
           />
         </div>
         <div className="home-shahin-identity">
-          <div className="home-shahin-name-box">{homeHero.name}</div>
-          <div className="home-shahin-tag-box">{homeHero.tagline}</div>
+          <div className="home-shahin-name-box">{hero.name}</div>
+          <div className="home-shahin-tag-box">{hero.tagline}</div>
         </div>
       </div>
     </section>

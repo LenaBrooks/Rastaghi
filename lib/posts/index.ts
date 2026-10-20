@@ -215,6 +215,19 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
   return rows.map(mapPost);
 }
 
+export async function getPostsByCategory(category: string): Promise<Post[]> {
+  if (!requireDbOrEmpty()) return [];
+  const name = decodeURIComponent(category).trim();
+  if (!name) return [];
+  const rows = (await sql()`
+    SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+    FROM posts
+    WHERE ${name} = ANY (categories) AND published = TRUE
+    ORDER BY date DESC, slug ASC
+  `) as PostRow[];
+  return rows.map(mapPost);
+}
+
 export async function getAllCategories(): Promise<
   { name: string; posts: Post[] }[]
 > {

@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS categories (
   name            TEXT NOT NULL UNIQUE,
   slug            TEXT NOT NULL UNIQUE,
   show_on_home    BOOLEAN NOT NULL DEFAULT FALSE,
+  show_in_header  BOOLEAN NOT NULL DEFAULT FALSE,
   home_item_mode  TEXT NOT NULL DEFAULT 'title',
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -53,10 +54,16 @@ ALTER TABLE categories
   ADD COLUMN IF NOT EXISTS show_on_home BOOLEAN NOT NULL DEFAULT FALSE;
 
 ALTER TABLE categories
+  ADD COLUMN IF NOT EXISTS show_in_header BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE categories
   ADD COLUMN IF NOT EXISTS home_item_mode TEXT NOT NULL DEFAULT 'title';
 
 CREATE INDEX IF NOT EXISTS categories_show_on_home_idx ON categories (show_on_home)
   WHERE show_on_home = TRUE;
+
+CREATE INDEX IF NOT EXISTS categories_show_in_header_idx ON categories (show_in_header)
+  WHERE show_in_header = TRUE;
 
 -- Managed tags (shown as #name — posts.tags stores bare names)
 CREATE TABLE IF NOT EXISTS tags (
@@ -88,11 +95,17 @@ CREATE TABLE IF NOT EXISTS comments (
   author_name   TEXT NOT NULL,
   body          TEXT NOT NULL,
   likes_count   INTEGER NOT NULL DEFAULT 0,
+  approved      BOOLEAN NOT NULL DEFAULT FALSE,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Existing DBs: keep prior comments visible. New inserts set approved explicitly.
+ALTER TABLE comments
+  ADD COLUMN IF NOT EXISTS approved BOOLEAN NOT NULL DEFAULT TRUE;
+
 CREATE INDEX IF NOT EXISTS comments_post_slug_idx ON comments (post_slug, created_at ASC);
 CREATE INDEX IF NOT EXISTS comments_parent_id_idx ON comments (parent_id);
+CREATE INDEX IF NOT EXISTS comments_approved_idx ON comments (post_slug, approved);
 
 -- One like per visitor per comment
 CREATE TABLE IF NOT EXISTS comment_likes (

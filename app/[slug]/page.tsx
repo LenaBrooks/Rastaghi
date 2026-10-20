@@ -2,26 +2,28 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentsSection } from "@/components/comments/CommentsSection";
+import { ShahinShell } from "@/components/home/ShahinShell";
 import { JalaliDate } from "@/components/JalaliDate";
 import { CalendarIcon } from "@/components/lucide/CalendarIcon";
 import { MessageCircleIcon } from "@/components/lucide/MessageCircleIcon";
 import { TagsIcon } from "@/components/lucide/TagsIcon";
 import { UserIcon } from "@/components/lucide/UserIcon";
-import { SiteShell } from "@/components/SiteShell";
 import { isAdminAuthenticated } from "@/lib/auth";
+import { categoryUrl } from "@/lib/categories";
 import {
   buildCommentTree,
   getCommentsForPost,
 } from "@/lib/comments";
+import { getHomeNavItems } from "@/lib/home-data";
 import {
   getPostBySlug,
   getPosts,
   getRelatedPosts,
   postUrl,
+  slugifyTitle,
   tagUrl,
 } from "@/lib/posts";
 import { site } from "@/lib/site";
-import { enhanceHtmlWithToc } from "@/lib/toc";
 import { peekVisitorId } from "@/lib/visitor";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -30,7 +32,9 @@ const RESERVED = new Set([
   "all",
   "tags",
   "categories",
+  "category",
   "projects",
+  "contact",
   "tag",
   "page",
   "feed.xml",
@@ -70,16 +74,19 @@ export default async function PostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const { html } = enhanceHtmlWithToc(post.html);
-  const related = await getRelatedPosts(post);
-  const visitorId = await peekVisitorId();
-  const [flatComments, isAdmin] = await Promise.all([
-    getCommentsForPost(slug, visitorId),
-    isAdminAuthenticated(),
+  const html = post.html;
+  const [related, visitorId, navItems] = await Promise.all([
+    getRelatedPosts(post),
+    peekVisitorId(),
+    getHomeNavItems(),
   ]);
+  const isAdmin = await isAdminAuthenticated();
+  const flatComments = await getCommentsForPost(slug, visitorId, {
+    includeUnapproved: isAdmin,
+  });
   const commentTree = buildCommentTree(flatComments);
-  const commentCount = flatComments.length;
-  const category = post.categories?.[0] ?? post.tags[0] ?? null;
+  const commentCount = flatComments.filter((c) => c.approved).length;
+  const categoryName = post.categories?.[0] ?? null;
   const author = site.author || site.title;
 
   const jsonLd = {
@@ -94,53 +101,66 @@ export default async function PostPage({ params }: Props) {
   };
 
   return (
-    <SiteShell>
+    <ShahinShell navItems={navItems}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <article className="post-content">
-        <header className="post-header">
-          <h1 className="post-title">{post.title}</h1>
-          <div className="post-meta-strip" role="group" aria-label="اطلاعات مطلب">
-            <span className="post-meta-strip-item">
+      <article className="shahin-post">
+        <header className="shahin-post-header">
+          <h1 className="shahin-post-title">{post.title}</h1>
+          <div
+            className="shahin-post-meta"
+            role="group"
+            aria-label="اطلاعات مطلب"
+          >
+            <span className="shahin-post-meta-item">
               <CalendarIcon
-                size={14}
+                size={15}
                 strokeWidth={1.7}
-                className="post-meta-icon"
+                className="shahin-post-meta-icon"
                 aria-hidden
               />
-              <JalaliDate date={post.date} format="%d %b %Y" />
+              <JalaliDate date={post.date} format="%d %b %Y" plain />
             </span>
-            <span className="post-meta-strip-item">
+            <span className="shahin-post-meta-sep" aria-hidden>
+              |
+            </span>
+            <span className="shahin-post-meta-item">
               <UserIcon
-                size={14}
+                size={15}
                 strokeWidth={1.7}
-                className="post-meta-icon"
+                className="shahin-post-meta-icon"
                 aria-hidden
               />
               <span>{author}</span>
             </span>
-            {category ? (
-              <span className="post-meta-strip-item">
-                <TagsIcon
-                  size={14}
-                  strokeWidth={1.7}
-                  className="post-meta-icon"
-                  aria-hidden
-                />
-                {post.categories?.[0] ? (
-                  <Link href="/categories">{category}</Link>
-                ) : (
-                  <Link href={tagUrl(category)}>{category}</Link>
-                )}
-              </span>
+            {categoryName ? (
+              <>
+                <span className="shahin-post-meta-sep" aria-hidden>
+                  |
+                </span>
+                <span className="shahin-post-meta-item">
+                  <TagsIcon
+                    size={15}
+                    strokeWidth={1.7}
+                    className="shahin-post-meta-icon"
+                    aria-hidden
+                  />
+                  <Link href={categoryUrl(slugifyTitle(categoryName))}>
+                    {categoryName}
+                  </Link>
+                </span>
+              </>
             ) : null}
-            <a href="#comments" className="post-meta-strip-item">
+            <span className="shahin-post-meta-sep" aria-hidden>
+              |
+            </span>
+            <a href="#comments" className="shahin-post-meta-item">
               <MessageCircleIcon
-                size={14}
+                size={15}
                 strokeWidth={1.7}
-                className="post-meta-icon"
+                className="shahin-post-meta-icon"
                 aria-hidden
               />
               <span>
@@ -151,40 +171,44 @@ export default async function PostPage({ params }: Props) {
             </a>
           </div>
         </header>
-        <div className="post-body" dangerouslySetInnerHTML={{ __html: html }} />
-      </article>
 
-      {post.tags.length > 0 ? (
-        <footer className="post-meta post-tags">
-          {post.tags.map((tag) => (
-            <Link key={tag} rel="tag" href={tagUrl(tag)}>
-              #{tag}
-            </Link>
-          ))}
-        </footer>
-      ) : null}
+        <div
+          className="shahin-post-body"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
 
-      <hr className="post-end-divider" />
-
-      {related.length > 0 ? (
-        <aside id="related-posts" className="related-posts">
-          <h3 className="related-posts-title">همچنین بخوانید:</h3>
-          <ul className="related-posts-list">
-            {related.map((r) => (
-              <li key={r.slug}>
-                <Link href={postUrl(r.slug)}>{r.title}</Link>
-              </li>
+        {post.tags.length > 0 ? (
+          <footer className="shahin-post-tags">
+            {post.tags.map((tag) => (
+              <Link key={tag} rel="tag" href={tagUrl(tag)}>
+                #{tag}
+              </Link>
             ))}
-          </ul>
-        </aside>
-      ) : null}
+          </footer>
+        ) : null}
 
-      <CommentsSection
-        postSlug={slug}
-        tree={commentTree}
-        totalCount={commentCount}
-        isAdmin={isAdmin}
-      />
-    </SiteShell>
+        {related.length > 0 ? (
+          <aside id="related-posts" className="shahin-post-related">
+            <h2 className="shahin-post-related-title">همچنین بخوانید:</h2>
+            <ul className="shahin-post-related-list">
+              {related.map((r) => (
+                <li key={r.slug}>
+                  <Link href={postUrl(r.slug)}>{r.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ) : null}
+
+        <div className="shahin-post-comments">
+          <CommentsSection
+            postSlug={slug}
+            tree={commentTree}
+            totalCount={commentCount}
+            isAdmin={isAdmin}
+          />
+        </div>
+      </article>
+    </ShahinShell>
   );
 }

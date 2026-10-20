@@ -1,8 +1,53 @@
-import { getHomeCategories } from "@/lib/categories";
+import {
+  categoryUrl,
+  getHeaderCategories,
+  getHomeCategories,
+} from "@/lib/categories";
 import { formatJalali } from "@/lib/jalali";
 import { getPosts, getProjects, postUrl } from "@/lib/posts";
 import { getSetting } from "@/lib/settings";
-import type { HomeLinkItem, HomeProjectCard, HomeSection } from "@/lib/home-fake";
+import type {
+  HomeLinkItem,
+  HomeNavItem,
+  HomeProjectCard,
+  HomeSection,
+} from "@/lib/home-fake";
+import { homeHero as homeHeroDefaults } from "@/lib/home-fake";
+
+export type HomeHeroContent = {
+  name: string;
+  tagline: string;
+  portrait: string;
+  pattern: string;
+  avatar: string;
+};
+
+export async function getHomeHero(): Promise<HomeHeroContent> {
+  const [name, tagline] = await Promise.all([
+    getSetting("home.hero_name"),
+    getSetting("home.hero_tagline"),
+  ]);
+  return {
+    name: name.trim() || homeHeroDefaults.name,
+    tagline: tagline.trim() || homeHeroDefaults.tagline,
+    portrait: homeHeroDefaults.portrait,
+    pattern: homeHeroDefaults.pattern,
+    avatar: homeHeroDefaults.avatar,
+  };
+}
+
+export async function getHomeNavItems(): Promise<HomeNavItem[]> {
+  const headerCats = await getHeaderCategories();
+  const items: HomeNavItem[] = [{ label: "خانه", href: "/" }];
+  for (const cat of headerCats) {
+    items.push({
+      label: cat.name,
+      href: categoryUrl(cat.slug),
+    });
+  }
+  items.push({ label: "تماس با ما", href: "/contact" });
+  return items;
+}
 
 /** Strip light markdown/markup so short posts can show as plain line text. */
 function plainBodyText(markdown: string): string {

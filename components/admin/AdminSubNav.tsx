@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeControls";
 
 const LINKS = [
   { href: "/admin", label: "پست‌ها", match: (p: string) => p === "/admin" },
@@ -66,6 +67,7 @@ export function AdminSubNav() {
           </Link>
         );
       })}
+      <ThemeToggle className="admin-subnav-link" />
     </nav>
   );
 }

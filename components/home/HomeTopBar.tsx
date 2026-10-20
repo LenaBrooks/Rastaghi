@@ -1,7 +1,14 @@
 import Image from "next/image";
-import { homeHero, homeNav } from "@/lib/home-fake";
+import Link from "next/link";
+import { HomeSearch } from "@/components/home/HomeSearch";
+import { ThemeToggle } from "@/components/ThemeControls";
+import { homeHero, type HomeNavItem } from "@/lib/home-fake";
 
-export function HomeTopBar() {
+type HomeTopBarProps = {
+  navItems: HomeNavItem[];
+};
+
+export function HomeTopBar({ navItems }: HomeTopBarProps) {
   return (
     <header className="home-shahin-topbar">
       <Image
@@ -13,14 +20,14 @@ export function HomeTopBar() {
         priority
       />
       <nav className="home-shahin-nav" aria-label="منوی اصلی">
-        {homeNav.map((item, index) => (
-          <span key={item.label} className="home-shahin-nav-item">
+        {navItems.map((item, index) => (
+          <span key={`${item.href}-${item.label}`} className="home-shahin-nav-item">
             {index > 0 ? (
               <span className="home-shahin-nav-sep" aria-hidden>
                 |
               </span>
             ) : null}
-            <a href={item.href} className="home-shahin-nav-link">
+            <Link href={item.href} className="home-shahin-nav-link">
               {item.label}
               {item.pin ? (
                 <span className="home-shahin-nav-pin" aria-hidden>
@@ -34,10 +41,14 @@ export function HomeTopBar() {
                   ▾
                 </span>
               ) : null}
-            </a>
+            </Link>
           </span>
         ))}
       </nav>
+      <div className="home-shahin-topbar-actions">
+        <ThemeToggle className="home-shahin-theme-toggle" />
+        <HomeSearch />
+      </div>
     </header>
   );
 }

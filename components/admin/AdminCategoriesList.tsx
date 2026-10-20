@@ -35,6 +35,7 @@ export type AdminCategoryItem = {
   name: string;
   slug: string;
   showOnHome: boolean;
+  showInHeader: boolean;
   homeItemMode: "title" | "body";
 };
 
@@ -164,7 +165,13 @@ export function AdminCategoriesList({ categories }: AdminCategoriesListProps) {
       {editing ? (
         <div className="admin-categories-add">
           <CategoryForm
-            category={{ id: editing.id, name: editing.name }}
+            category={{
+              id: editing.id,
+              name: editing.name,
+              showOnHome: editing.showOnHome,
+              showInHeader: editing.showInHeader,
+              homeItemMode: editing.homeItemMode,
+            }}
             onSuccess={() => {
               setEditing(null);
               router.refresh();
@@ -289,6 +296,9 @@ export function AdminCategoriesList({ categories }: AdminCategoriesListProps) {
                         {item.homeItemMode === "body" ? " · متن" : ""}
                       </span>
                     ) : null}
+                    {item.showInHeader ? (
+                      <span className="admin-cat-home-badge">هدر</span>
+                    ) : null}
                   </span>
                 </button>
               </li>
@@ -301,6 +311,7 @@ export function AdminCategoriesList({ categories }: AdminCategoriesListProps) {
                 <th className="admin-table-num">#</th>
                 <th className="admin-table-title">نام</th>
                 <th className="admin-table-home">صفحه اصلی</th>
+                <th className="admin-table-home">هدر</th>
                 <th className="admin-table-actions">عملیات</th>
               </tr>
             </thead>
@@ -315,6 +326,9 @@ export function AdminCategoriesList({ categories }: AdminCategoriesListProps) {
                         ? "بله · متن"
                         : "بله · عنوان"
                       : "—"}
+                  </td>
+                  <td className="admin-table-home">
+                    {item.showInHeader ? "بله" : "—"}
                   </td>
                   <td className="admin-table-actions admin-row-actions">
                     <IconTooltip
@@ -393,7 +407,13 @@ export function AdminCategoriesList({ categories }: AdminCategoriesListProps) {
                 </SheetHeader>
                 <div className="admin-posts-sheet-actions">
                   <CategoryForm
-                    category={{ id: sheetItem.id, name: sheetItem.name }}
+                    category={{
+                      id: sheetItem.id,
+                      name: sheetItem.name,
+                      showOnHome: sheetItem.showOnHome,
+                      showInHeader: sheetItem.showInHeader,
+                      homeItemMode: sheetItem.homeItemMode,
+                    }}
                     onSuccess={() => {
                       setSheetItem(null);
                       setSheetMode("actions");

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  approveCommentAction,
   deleteCommentAction,
   setCommentLikeAction,
 } from "@/app/comments/actions";
@@ -12,6 +13,7 @@ import { JalaliDate } from "@/components/JalaliDate";
 import { HeartIcon } from "@/components/lucide/HeartIcon";
 import { ReplyIcon } from "@/components/lucide/ReplyIcon";
 import { TrashIcon } from "@/components/lucide/TrashIcon";
+import { PendingButton } from "@/components/PendingButton";
 import {
   Sheet,
   SheetContent,
@@ -157,9 +159,13 @@ export function CommentItem({
       id={`comment-${comment.id}`}
     >
       <article
-        className={
-          isAdmin ? "comment-card comment-card-admin" : "comment-card"
-        }
+        className={[
+          "comment-card",
+          isAdmin ? "comment-card-admin" : "",
+          comment.approved ? "" : "comment-card-pending",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         onPointerDown={startLongPress}
         onPointerUp={clearLongPressTimer}
         onPointerLeave={clearLongPressTimer}
@@ -183,6 +189,9 @@ export function CommentItem({
           </span>
           <div className="comment-meta-text">
             <strong className="comment-author">{comment.authorName}</strong>
+            {!comment.approved ? (
+              <span className="comment-pending-badge">در انتظار تأیید</span>
+            ) : null}
           </div>
           <div className="comment-meta-side">
             {comment.replyToName ? (
@@ -233,6 +242,24 @@ export function CommentItem({
           <span className="comment-date">
             <JalaliDate date={comment.createdAt} format="%d %b %Y" />
           </span>
+          {isAdmin && !comment.approved ? (
+            <form
+              action={async (formData) => {
+                await approveCommentAction(formData);
+                onChanged();
+              }}
+              className="comment-approve-form"
+            >
+              <input type="hidden" name="id" value={comment.id} />
+              <PendingButton
+                className="comment-approve-btn"
+                pendingLabel="…"
+                variant="secondary"
+              >
+                تأیید
+              </PendingButton>
+            </form>
+          ) : null}
         </footer>
 
         {replying ? (
@@ -269,6 +296,24 @@ export function CommentItem({
                 </SheetTitle>
               </SheetHeader>
               <div className="admin-posts-sheet-actions">
+                {!comment.approved ? (
+                  <form
+                    action={async (formData) => {
+                      await approveCommentAction(formData);
+                      setSheetOpen(false);
+                      onChanged();
+                    }}
+                    className="admin-posts-sheet-form"
+                  >
+                    <input type="hidden" name="id" value={comment.id} />
+                    <PendingButton
+                      className="admin-posts-sheet-btn"
+                      pendingLabel="در حال تأیید…"
+                    >
+                      تأیید نمایش
+                    </PendingButton>
+                  </form>
+                ) : null}
                 <button
                   type="button"
                   className="admin-posts-sheet-btn"

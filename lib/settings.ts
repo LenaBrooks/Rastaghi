@@ -7,13 +7,50 @@ export type SettingOption = { value: string; label: string };
  * Registry of editable site settings.
  * Add new entries here — they automatically appear in /admin/settings.
  */
+const CONTACT_BODY_DEFAULT = [
+  "برای ارتباط می‌توانید از راه‌های زیر استفاده کنید.",
+  "",
+  "ایمیل: hello@example.com",
+  "تلگرام: @example",
+  "",
+  "پیامتان را بفرستید؛ در اولین فرصت پاسخ می‌دهم.",
+].join("\n");
+
 export const SETTING_DEFS = [
+  {
+    key: "home.hero_name",
+    label: "نام در بنر",
+    group: "صفحه اصلی",
+    defaultValue: "محمد رستاقی",
+    type: "text" as const,
+  },
+  {
+    key: "home.hero_tagline",
+    label: "شعار بنر",
+    group: "صفحه اصلی",
+    defaultValue: "آموزش نویسندگی، تفکر و توسعه فردی",
+    type: "text" as const,
+  },
   {
     key: "home.featured_title",
     label: "عنوان برگزیده‌ها",
     group: "صفحه اصلی",
     defaultValue: "برگزیده‌ها:",
     type: "text" as const,
+  },
+  {
+    key: "contact.title",
+    label: "عنوان",
+    group: "تماس با ما",
+    defaultValue: "تماس با ما",
+    type: "text" as const,
+  },
+  {
+    key: "contact.body",
+    label: "متن صفحه",
+    group: "تماس با ما",
+    defaultValue: CONTACT_BODY_DEFAULT,
+    type: "textarea" as const,
   },
   {
     key: "font.header",
@@ -45,7 +82,7 @@ export type SettingDef = {
   label: string;
   group: string;
   defaultValue: string;
-  type?: "text" | "select";
+  type?: "text" | "textarea" | "select";
   options?: SettingOption[];
 };
 

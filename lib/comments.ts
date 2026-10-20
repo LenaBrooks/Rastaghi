@@ -7,6 +7,7 @@ export type CommentRow = {
   authorName: string;
   body: string;
   likesCount: number;
+  approved: boolean;
   createdAt: string;
   likedByVisitor: boolean;
 };
@@ -25,6 +26,7 @@ type DbComment = {
   author_name: string;
   body: string;
   likes_count: number;
+  approved: boolean;
   created_at: string | Date;
 };
 
@@ -36,10 +38,7 @@ function requireDbOrEmpty(): boolean {
   return false;
 }
 
-function mapRow(
-  row: DbComment,
-  likedIds: Set<number>,
-): CommentRow {
+function mapRow(row: DbComment, likedIds: Set<number>): CommentRow {
   return {
     id: Number(row.id),
     postSlug: row.post_slug,
@@ -47,6 +46,7 @@ function mapRow(
     authorName: row.author_name,
     body: row.body,
     likesCount: Number(row.likes_count) || 0,
+    approved: Boolean(row.approved),
     createdAt:
       typeof row.created_at === "string"
         ? row.created_at
@@ -59,15 +59,30 @@ function mapRow(
 export async function getCommentsForPost(
   postSlug: string,
   visitorId?: string | null,
+  options?: { includeUnapproved?: boolean },
 ): Promise<CommentRow[]> {
   if (!requireDbOrEmpty()) return [];
 
-  const rows = (await sql()`
-    SELECT id, post_slug, parent_id, author_name, body, likes_count, created_at
-    FROM comments
-    WHERE post_slug = ${postSlug}
-    ORDER BY created_at ASC, id ASC
-  `) as DbComment[];
+  const includeUnapproved = options?.includeUnapproved === true;
+
+  const rows = (
+    includeUnapproved
+      ? await sql()`
+          SELECT id, post_slug, parent_id, author_name, body, likes_count,
+                 approved, created_at
+          FROM comments
+          WHERE post_slug = ${postSlug}
+          ORDER BY created_at ASC, id ASC
+        `
+      : await sql()`
+          SELECT id, post_slug, parent_id, author_name, body, likes_count,
+                 approved, created_at
+          FROM comments
+          WHERE post_slug = ${postSlug}
+            AND approved = TRUE
+          ORDER BY created_at ASC, id ASC
+        `
+  ) as DbComment[];
 
   let likedIds = new Set<number>();
   if (visitorId && rows.length > 0) {
@@ -82,6 +97,17 @@ export async function getCommentsForPost(
   }
 
   return rows.map((r) => mapRow(r, likedIds));
+}
+
+/** Public count of approved comments only. */
+export async function countApprovedComments(postSlug: string): Promise<number> {
+  if (!requireDbOrEmpty()) return 0;
+  const rows = (await sql()`
+    SELECT COUNT(*)::int AS n
+    FROM comments
+    WHERE post_slug = ${postSlug} AND approved = TRUE
+  `) as { n: number }[];
+  return Number(rows[0]?.n) || 0;
 }
 
 /** Build tree; visual depth max 2; deeper nodes keep depth=2 + replyToName. */
@@ -123,6 +149,7 @@ export async function createComment(input: {
   authorName: string;
   body: string;
   parentId?: number | null;
+  approved?: boolean;
 }): Promise<CommentRow> {
   const authorName = input.authorName.trim();
   const body = input.body.trim();
@@ -133,25 +160,45 @@ export async function createComment(input: {
 
   if (input.parentId != null) {
     const parents = (await sql()`
-      SELECT id, post_slug FROM comments WHERE id = ${input.parentId} LIMIT 1
-    `) as { id: number; post_slug: string }[];
+      SELECT id, post_slug, approved
+      FROM comments
+      WHERE id = ${input.parentId}
+      LIMIT 1
+    `) as { id: number; post_slug: string; approved: boolean }[];
     if (!parents[0] || parents[0].post_slug !== input.postSlug) {
       throw new Error("نظر والد نامعتبر است.");
     }
+    if (!parents[0].approved && !input.approved) {
+      throw new Error("نظر والد هنوز تأیید نشده است.");
+    }
   }
 
+  const approved = input.approved === true;
+
   const rows = (await sql()`
-    INSERT INTO comments (post_slug, parent_id, author_name, body)
+    INSERT INTO comments (post_slug, parent_id, author_name, body, approved)
     VALUES (
       ${input.postSlug},
       ${input.parentId ?? null},
       ${authorName},
-      ${body}
+      ${body},
+      ${approved}
     )
-    RETURNING id, post_slug, parent_id, author_name, body, likes_count, created_at
+    RETURNING id, post_slug, parent_id, author_name, body, likes_count,
+              approved, created_at
   `) as DbComment[];
 
   return mapRow(rows[0], new Set());
+}
+
+export async function approveComment(id: number): Promise<string | null> {
+  const rows = (await sql()`
+    UPDATE comments
+    SET approved = TRUE
+    WHERE id = ${id}
+    RETURNING post_slug
+  `) as { post_slug: string }[];
+  return rows[0]?.post_slug ?? null;
 }
 
 /** Idempotent set: apply desired liked state, return authoritative count. */
@@ -200,13 +247,14 @@ export async function setCommentLike(
     SELECT likes_count FROM comments WHERE id = ${commentId} LIMIT 1
   `) as { likes_count: number }[];
 
-  const nowLiked = (
-    (await sql()`
+  const nowLiked =
+    (
+      (await sql()`
       SELECT 1 FROM comment_likes
       WHERE comment_id = ${commentId} AND visitor_id = ${visitorId}
       LIMIT 1
     `) as unknown[]
-  ).length > 0;
+    ).length > 0;
 
   return {
     likesCount: Number(rows[0]?.likes_count) || 0,

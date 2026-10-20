@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { HomePage } from "@/components/home/HomePage";
-import { getHomeProjects, getHomeSections } from "@/lib/home-data";
+import {
+  getHomeHero,
+  getHomeNavItems,
+  getHomeProjects,
+  getHomeSections,
+} from "@/lib/home-data";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -9,10 +14,19 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [sections, projects] = await Promise.all([
+  const [navItems, sections, projects, hero] = await Promise.all([
+    getHomeNavItems(),
     getHomeSections(),
     getHomeProjects(),
+    getHomeHero(),
   ]);
 
-  return <HomePage sections={sections} projects={projects} />;
+  return (
+    <HomePage
+      navItems={navItems}
+      sections={sections}
+      projects={projects}
+      hero={hero}
+    />
+  );
 }

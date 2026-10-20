@@ -1,31 +1,37 @@
-import type { HomeProjectCard, HomeSection } from "@/lib/home-fake";
+import type { HomeHeroContent } from "@/lib/home-data";
+import type {
+  HomeNavItem,
+  HomeProjectCard,
+  HomeSection,
+} from "@/lib/home-fake";
 import { HomeHero } from "./HomeHero";
 import { HomeLinkSection } from "./HomeLinkSection";
 import { HomeProjectsGrid } from "./HomeProjectsGrid";
-import { HomeTopBar } from "./HomeTopBar";
+import { ShahinShell } from "./ShahinShell";
 
 type HomePageProps = {
+  navItems: HomeNavItem[];
   sections: HomeSection[];
   projects: HomeProjectCard[];
+  hero: HomeHeroContent;
 };
 
-export function HomePage({ sections, projects }: HomePageProps) {
+export function HomePage({
+  navItems,
+  sections,
+  projects,
+  hero,
+}: HomePageProps) {
   return (
-    <div className="home-shahin" dir="rtl" lang="fa">
-      <div className="home-shahin-shell">
-        <HomeTopBar />
+    <ShahinShell navItems={navItems} beforeBody={<HomeHero hero={hero} />}>
+      <div className="home-shahin-body">
+        {sections.map((section) => (
+          <HomeLinkSection key={section.id} section={section} />
+        ))}
+        {projects.length > 0 ? (
+          <HomeProjectsGrid items={projects} />
+        ) : null}
       </div>
-      <HomeHero />
-      <div className="home-shahin-shell home-shahin-shell--body">
-        <div className="home-shahin-body">
-          {sections.map((section) => (
-            <HomeLinkSection key={section.id} section={section} />
-          ))}
-          {projects.length > 0 ? (
-            <HomeProjectsGrid items={projects} />
-          ) : null}
-        </div>
-      </div>
-    </div>
+    </ShahinShell>
   );
 }
