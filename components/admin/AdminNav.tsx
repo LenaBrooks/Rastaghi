@@ -106,6 +106,13 @@ export function AdminNav({ authed }: AdminNavProps) {
               دسته‌بندی‌ها
             </Link>
             <Link
+              href="/admin/tags"
+              className="admin-nav-item"
+              onClick={() => setOpen(false)}
+            >
+              برچسب‌ها
+            </Link>
+            <Link
               href="/admin/settings"
               className="admin-nav-item"
               onClick={() => setOpen(false)}

@@ -58,6 +58,14 @@ ALTER TABLE categories
 CREATE INDEX IF NOT EXISTS categories_show_on_home_idx ON categories (show_on_home)
   WHERE show_on_home = TRUE;
 
+-- Managed tags (shown as #name — posts.tags stores bare names)
+CREATE TABLE IF NOT EXISTS tags (
+  id            SERIAL PRIMARY KEY,
+  name          TEXT NOT NULL UNIQUE,
+  slug          TEXT NOT NULL UNIQUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Optional projects listing
 CREATE TABLE IF NOT EXISTS projects (
   id            SERIAL PRIMARY KEY,

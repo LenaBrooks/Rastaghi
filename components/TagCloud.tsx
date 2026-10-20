@@ -28,7 +28,7 @@ export async function TagCloud() {
           return (
             <span key={tag.name}>
               <Link className={`set-${set}`} href={tagUrl(tag.name)}>
-                {tag.name}
+                #{tag.name}
               </Link>{" "}
             </span>
           );

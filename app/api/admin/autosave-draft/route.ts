@@ -48,7 +48,10 @@ export async function POST(request: Request) {
   const title = titleRaw || "پیش‌نویس بدون عنوان";
   const body = bodyRaw.trim() ? bodyRaw : "";
   const tags = Array.isArray(data.tags)
-    ? data.tags.map(String).map((t) => t.trim()).filter(Boolean)
+    ? data.tags
+        .map(String)
+        .map((t) => t.trim().replace(/^#+/u, "").trim())
+        .filter(Boolean)
     : [];
   const category = String(data.category ?? "").trim();
   const categories = category ? [category] : [];

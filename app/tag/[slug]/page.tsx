@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const name = decodeURIComponent(slug);
   return {
-    title: name,
+    title: `#${name}`,
     robots: { index: false },
   };
 }
@@ -28,7 +28,7 @@ export default async function TagPage({ params }: Props) {
 
   return (
     <SiteShell>
-      <PostList groups={[{ title: name, posts }]} />
+      <PostList groups={[{ title: `#${name}`, posts }]} />
     </SiteShell>
   );
 }

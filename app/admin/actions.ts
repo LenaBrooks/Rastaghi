@@ -25,6 +25,13 @@ import {
   updatePost,
 } from "@/lib/posts";
 import { getSettingDefs, setSettings } from "@/lib/settings";
+import {
+  createTag,
+  deleteTag,
+  ensureTagsExist,
+  normalizeTagName,
+  updateTag,
+} from "@/lib/tags";
 
 function requireAuthOrThrow(ok: boolean) {
   if (!ok) {
@@ -62,10 +69,15 @@ function revalidateAfterPostChange(options: {
 
 function parseList(value: FormDataEntryValue | null): string[] {
   if (typeof value !== "string" || !value.trim()) return [];
-  return value
-    .split(/[,،]/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of value.split(/[,،]/)) {
+    const name = normalizeTagName(part);
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    out.push(name);
+  }
+  return out;
 }
 
 export async function loginAction(
@@ -136,6 +148,7 @@ export async function savePostAction(
   };
 
   try {
+    await ensureTagsExist(tags);
     if (originalSlug) {
       await updatePost(originalSlug, payload);
     } else {
@@ -151,6 +164,7 @@ export async function savePostAction(
     previousSlug: originalSlug || undefined,
     tags,
   });
+  revalidatePath("/admin/tags");
 
   redirect("/admin");
 }
@@ -178,6 +192,17 @@ export async function setPostPublishedAction(
 function revalidateCategoryPaths() {
   revalidatePath("/admin/categories");
   revalidatePath("/categories");
+  revalidatePath("/admin/new");
+  revalidatePath("/admin/[slug]/edit", "page");
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/[slug]", "page");
+}
+
+function revalidateTagPaths() {
+  revalidatePath("/admin/tags");
+  revalidatePath("/tags");
+  revalidatePath("/tag/[slug]", "page");
   revalidatePath("/admin/new");
   revalidatePath("/admin/[slug]/edit", "page");
   revalidatePath("/admin");
@@ -243,6 +268,54 @@ export async function deleteCategoryAction(formData: FormData): Promise<void> {
   await deleteCategory(id);
   revalidateCategoryPaths();
   redirect("/admin/categories");
+}
+
+export async function createTagAction(
+  _prev: { error?: string; ok?: boolean } | undefined,
+  formData: FormData,
+): Promise<{ error?: string; ok?: boolean }> {
+  requireAuthOrThrow(await isAdminAuthenticated());
+  const name = String(formData.get("name") ?? "");
+  if (!normalizeTagName(name)) return { error: "نام برچسب را وارد کن." };
+  try {
+    await createTag(name);
+  } catch (err) {
+    console.error(err);
+    return { error: "ساخت برچسب ناموفق بود (شاید تکراری است)." };
+  }
+  revalidateTagPaths();
+  return { ok: true };
+}
+
+export async function updateTagAction(
+  _prev: { error?: string; ok?: boolean } | undefined,
+  formData: FormData,
+): Promise<{ error?: string; ok?: boolean }> {
+  requireAuthOrThrow(await isAdminAuthenticated());
+  const id = Number(formData.get("id"));
+  const name = String(formData.get("name") ?? "");
+  if (!Number.isFinite(id)) return { error: "برچسب نامعتبر است." };
+  if (!normalizeTagName(name)) return { error: "نام برچسب را وارد کن." };
+  try {
+    await updateTag(id, name);
+  } catch (err) {
+    console.error(err);
+    return {
+      error:
+        err instanceof Error ? err.message : "ویرایش برچسب ناموفق بود.",
+    };
+  }
+  revalidateTagPaths();
+  return { ok: true };
+}
+
+export async function deleteTagAction(formData: FormData): Promise<void> {
+  requireAuthOrThrow(await isAdminAuthenticated());
+  const id = Number(formData.get("id"));
+  if (!Number.isFinite(id)) return;
+  await deleteTag(id);
+  revalidateTagPaths();
+  redirect("/admin/tags");
 }
 
 export async function saveSettingsAction(

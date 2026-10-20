@@ -16,6 +16,11 @@ const LINKS = [
     match: (p: string) => p.startsWith("/admin/categories"),
   },
   {
+    href: "/admin/tags",
+    label: "برچسب‌ها",
+    match: (p: string) => p.startsWith("/admin/tags"),
+  },
+  {
     href: "/admin/settings",
     label: "تنظیمات",
     match: (p: string) => p.startsWith("/admin/settings"),

@@ -486,7 +486,9 @@ export function AdminPostsList({ posts }: AdminPostsListProps) {
                   {sheetPost.tags.length > 0 ? (
                     <div>
                       <dt>برچسب‌ها</dt>
-                      <dd>{sheetPost.tags.join("، ")}</dd>
+                      <dd>
+                        {sheetPost.tags.map((t) => `#${t}`).join("، ")}
+                      </dd>
                     </div>
                   ) : null}
                 </dl>

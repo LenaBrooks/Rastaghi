@@ -1925,6 +1925,28 @@ a.post-meta-strip-item:hover {
   cursor: pointer;
 }
 
+.admin-tag-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.admin-tag-name-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-tag-hash {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--text-muted, color-mix(in oklch, var(--text) 55%, transparent));
+}
+
+.admin-tag-label {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .admin-tags-field {
   display: flex;
   flex-direction: column;

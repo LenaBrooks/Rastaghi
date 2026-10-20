@@ -158,7 +158,7 @@ export default async function PostPage({ params }: Props) {
         <footer className="post-meta post-tags">
           {post.tags.map((tag) => (
             <Link key={tag} rel="tag" href={tagUrl(tag)}>
-              <span className="emoji">🏷️</span> {tag}
+              #{tag}
             </Link>
           ))}
         </footer>

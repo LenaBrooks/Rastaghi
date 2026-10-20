@@ -469,7 +469,7 @@ export function PostForm({
   function addTag(raw: string) {
     const next = raw
       .split(/[,،]/)
-      .map((s) => s.trim())
+      .map((s) => s.trim().replace(/^#+/u, "").trim())
       .filter(Boolean);
     if (next.length === 0) return;
     setTags((prev) => {
@@ -759,11 +759,11 @@ export function PostForm({
               <ul className="admin-tag-list">
                 {tags.map((tag) => (
                   <li key={tag} className="admin-tag-chip">
-                    <span>{tag}</span>
+                    <span>#{tag}</span>
                     <button
                       type="button"
                       className="admin-tag-remove"
-                      aria-label={`حذف ${tag}`}
+                      aria-label={`حذف #${tag}`}
                       onClick={() => removeTag(tag)}
                     >
                       ×

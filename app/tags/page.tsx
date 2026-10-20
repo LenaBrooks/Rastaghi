@@ -13,7 +13,7 @@ export default async function TagsPage() {
   const untagged = posts.filter((p) => p.tags.length === 0);
 
   const groups = tags.map((tag) => ({
-    title: tag.name,
+    title: `#${tag.name}`,
     posts: posts.filter((p) => p.tags.includes(tag.name)),
   }));
 
