@@ -1,0 +1,13 @@
+/*
+ * Vazirmatn — variable
+ * https://github.com/rastikerdar/vazirmatn
+ * Licensed under the SIL Open Font License, Version 1.1 — see OFL.txt.
+ */
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("./Vazirmatn-wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

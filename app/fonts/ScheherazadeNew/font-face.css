@@ -1,0 +1,21 @@
+/*
+ * Scheherazade New
+ * https://fonts.google.com/specimen/Scheherazade+New
+ * Licensed under the SIL Open Font License, Version 1.1 — see OFL.txt.
+ */
+
+@font-face {
+  font-family: "Scheherazade New";
+  src: url("./ScheherazadeNew-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Scheherazade New";
+  src: url("./ScheherazadeNew-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

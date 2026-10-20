@@ -1,0 +1,37 @@
+/*
+ * XB Kayhan — Regular, Bold, Italic, Bold Italic
+ * Designer: Behnam (X Series / Irmug) — https://fontlibrary.org/en/font/xb-kayhan
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "XB Kayhan";
+  src: url("./XBKayhan-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XB Kayhan";
+  src: url("./XBKayhan-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XB Kayhan";
+  src: url("./XBKayhan-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XB Kayhan";
+  src: url("./XBKayhan-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}

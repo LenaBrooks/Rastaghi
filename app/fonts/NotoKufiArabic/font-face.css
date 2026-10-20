@@ -1,0 +1,13 @@
+/*
+ * Noto Kufi Arabic — variable
+ * https://fonts.google.com/specimen/Noto+Kufi+Arabic
+ * Licensed under the SIL Open Font License, Version 1.1 — see OFL.txt.
+ */
+
+@font-face {
+  font-family: "Noto Kufi Arabic";
+  src: url("./NotoKufiArabic-wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

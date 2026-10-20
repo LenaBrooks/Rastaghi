@@ -1,0 +1,14 @@
+/*
+ * AQ Normal Sans — variable (wght 100–900)
+ * Copyright 2025 The AQ Normal Sans Project Authors — https://github.com/AzadQalam/normal-sans
+ * Reserved Font Names: AQ, AzadQalam, Azad Qalam
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "AQ Normal Sans";
+  src: url("./AQNormalSans-VF.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

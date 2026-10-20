@@ -1,0 +1,14 @@
+/*
+ * Farbod — Regular
+ * Copyright (c) 2016, Mohammad Saleh Souzanchi — https://github.com/font-store/FarbodFont
+ * Reserved Font Name "Farbod"
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "Farbod";
+  src: url("./Farbod-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

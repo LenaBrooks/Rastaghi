@@ -1,0 +1,21 @@
+/*
+ * Amiri
+ * https://fonts.google.com/specimen/Amiri
+ * Licensed under the SIL Open Font License, Version 1.1 — see OFL.txt.
+ */
+
+@font-face {
+  font-family: "Amiri";
+  src: url("./Amiri-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Amiri";
+  src: url("./Amiri-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

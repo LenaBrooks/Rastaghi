@@ -1,0 +1,13 @@
+/*
+ * Titr — Bold (title face)
+ * Sharif FarsiWeb, Inc. — https://fontlibrary.org/en/font/titr
+ * Licensed under the GNU General Public License v2 — see LICENSE / COPYING.txt.
+ */
+
+@font-face {
+  font-family: "Titr";
+  src: url("./Titr-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

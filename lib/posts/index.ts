@@ -1,0 +1,388 @@
+import { hasDatabaseUrl, sql } from "@/lib/db";
+import { renderMarkdown } from "@/lib/markdown";
+import type { Post, Project } from "./types";
+
+export type { Post, Project } from "./types";
+
+function requireDbOrEmpty(): boolean {
+  if (hasDatabaseUrl()) return true;
+  if (process.env.NODE_ENV !== "production") {
+    console.warn(
+      "[posts] DATABASE_URL is missing — returning empty data. Set .env.local then run db:migrate && db:seed.",
+    );
+  }
+  return false;
+}
+
+type PostRow = {
+  slug: string;
+  title: string;
+  date: string | Date;
+  tags: string[] | null;
+  categories: string[] | null;
+  excerpt: string | null;
+  body: string;
+  published?: boolean | null;
+  featured?: boolean | null;
+};
+
+type PostQueryOptions = {
+  /** When true, include drafts (admin). Public callers omit this. */
+  includeDrafts?: boolean;
+};
+
+type ProjectRow = {
+  slug: string;
+  title: string;
+  date: string | Date;
+  description: string;
+  language: string | null;
+  website: string | null;
+  repo: string | null;
+};
+
+function slugifyTag(tag: string): string {
+  return encodeURIComponent(tag.trim());
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** Normalize DB/date values to local `YYYY-MM-DDTHH:mm`. */
+function formatDate(value: string | Date): string {
+  let d: Date;
+  if (typeof value === "string") {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [y, m, day] = value.split("-").map(Number);
+      d = new Date(y, (m ?? 1) - 1, day ?? 1, 12, 0, 0);
+    } else {
+      const match = value.match(
+        /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/,
+      );
+      if (match) {
+        d = new Date(
+          Number(match[1]),
+          Number(match[2]) - 1,
+          Number(match[3]),
+          Number(match[4]),
+          Number(match[5]),
+          Number(match[6] ?? 0),
+        );
+      } else {
+        d = new Date(value);
+      }
+    }
+  } else {
+    d = value;
+  }
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function mapPost(row: PostRow): Post {
+  const body = row.body ?? "";
+  const html = renderMarkdown(body);
+  return {
+    slug: row.slug,
+    title: row.title,
+    date: formatDate(row.date),
+    tags: row.tags ?? [],
+    categories: row.categories ?? [],
+    excerpt: row.excerpt ?? undefined,
+    body,
+    html,
+    published: row.published !== false,
+    featured: row.featured === true,
+  };
+}
+
+function mapProject(row: ProjectRow): Project {
+  return {
+    slug: row.slug,
+    title: row.title,
+    date: formatDate(row.date),
+    description: row.description,
+    language: row.language ?? undefined,
+    website: row.website ?? undefined,
+    repo: row.repo ?? undefined,
+  };
+}
+
+/** Load posts (newest first). Drafts are excluded unless includeDrafts. */
+export async function getPosts(
+  options: PostQueryOptions = {},
+): Promise<Post[]> {
+  if (!requireDbOrEmpty()) return [];
+  const rows = options.includeDrafts
+    ? ((await sql()`
+        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        FROM posts
+        ORDER BY date DESC, slug ASC
+      `) as PostRow[])
+    : ((await sql()`
+        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        FROM posts
+        WHERE published = TRUE
+        ORDER BY date DESC, slug ASC
+      `) as PostRow[]);
+  return rows.map(mapPost);
+}
+
+export async function getPostBySlug(
+  slug: string,
+  options: PostQueryOptions = {},
+): Promise<Post | null> {
+  if (!requireDbOrEmpty()) return null;
+  const rows = options.includeDrafts
+    ? ((await sql()`
+        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        FROM posts
+        WHERE slug = ${slug}
+        LIMIT 1
+      `) as PostRow[])
+    : ((await sql()`
+        SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+        FROM posts
+        WHERE slug = ${slug} AND published = TRUE
+        LIMIT 1
+      `) as PostRow[]);
+  return rows[0] ? mapPost(rows[0]) : null;
+}
+
+export async function getAdjacentPosts(slug: string): Promise<{
+  previous: Post | null;
+  next: Post | null;
+}> {
+  const posts = await getPosts();
+  const index = posts.findIndex((p) => p.slug === slug);
+  if (index < 0) return { previous: null, next: null };
+  return {
+    next: index > 0 ? posts[index - 1] : null,
+    previous: index < posts.length - 1 ? posts[index + 1] : null,
+  };
+}
+
+export async function getRelatedPosts(
+  post: Post,
+  limit = 3,
+): Promise<Post[]> {
+  const posts = await getPosts();
+  const others = posts.filter((p) => p.slug !== post.slug);
+  const score = (other: Post) => {
+    const tagHits = other.tags.filter((t) => post.tags.includes(t)).length;
+    const catHits = (other.categories ?? []).filter((c) =>
+      (post.categories ?? []).includes(c),
+    ).length;
+    return tagHits * 2 + catHits;
+  };
+  const related = others
+    .map((p) => ({ p, s: score(p) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .map((x) => x.p);
+
+  if (related.length >= limit) return related.slice(0, limit);
+
+  const seen = new Set(related.map((p) => p.slug));
+  const fallback = others.filter((p) => !seen.has(p.slug));
+  return [...related, ...fallback].slice(0, limit);
+}
+
+export async function getAllTags(): Promise<
+  { name: string; slug: string; count: number }[]
+> {
+  const posts = await getPosts();
+  const counts = new Map<string, number>();
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, slug: slugifyTag(name), count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "fa"));
+}
+
+export async function getPostsByTag(tag: string): Promise<Post[]> {
+  if (!requireDbOrEmpty()) return [];
+  const decoded = decodeURIComponent(tag);
+  const rows = (await sql()`
+    SELECT slug, title, date, tags, categories, excerpt, body, published, featured
+    FROM posts
+    WHERE ${decoded} = ANY (tags) AND published = TRUE
+    ORDER BY date DESC, slug ASC
+  `) as PostRow[];
+  return rows.map(mapPost);
+}
+
+export async function getAllCategories(): Promise<
+  { name: string; posts: Post[] }[]
+> {
+  const posts = await getPosts();
+  const map = new Map<string, Post[]>();
+  const uncategorized: Post[] = [];
+  for (const post of posts) {
+    if (!post.categories?.length) {
+      uncategorized.push(post);
+      continue;
+    }
+    for (const cat of post.categories) {
+      const list = map.get(cat) ?? [];
+      list.push(post);
+      map.set(cat, list);
+    }
+  }
+  const groups = [...map.entries()].map(([name, items]) => ({
+    name,
+    posts: items,
+  }));
+  if (uncategorized.length) {
+    groups.push({ name: "بدون سرفصل", posts: uncategorized });
+  }
+  return groups;
+}
+
+export async function getPostsGroupedByYear(): Promise<
+  { year: string; posts: Post[] }[]
+> {
+  const posts = await getPosts();
+  const map = new Map<string, Post[]>();
+  for (const post of posts) {
+    const year = post.date.slice(0, 4);
+    const list = map.get(year) ?? [];
+    list.push(post);
+    map.set(year, list);
+  }
+  return [...map.entries()]
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([year, items]) => ({ year, posts: items }));
+}
+
+export async function getProjects(): Promise<Project[]> {
+  if (!requireDbOrEmpty()) return [];
+  const rows = (await sql()`
+    SELECT slug, title, date, description, language, website, repo
+    FROM projects
+    ORDER BY date DESC, slug ASC
+  `) as ProjectRow[];
+  return rows.map(mapProject);
+}
+
+export async function getProjectBySlug(
+  slug: string,
+): Promise<Project | null> {
+  if (!requireDbOrEmpty()) return null;
+  const rows = (await sql()`
+    SELECT slug, title, date, description, language, website, repo
+    FROM projects
+    WHERE slug = ${slug}
+    LIMIT 1
+  `) as ProjectRow[];
+  return rows[0] ? mapProject(rows[0]) : null;
+}
+
+export async function isSlugTaken(
+  slug: string,
+  excludeSlug?: string,
+): Promise<boolean> {
+  if (!requireDbOrEmpty()) return false;
+  if (excludeSlug && excludeSlug === slug) return false;
+  const rows = excludeSlug
+    ? ((await sql()`
+        SELECT 1 FROM posts
+        WHERE slug = ${slug} AND slug <> ${excludeSlug}
+        LIMIT 1
+      `) as { "?column?": number }[])
+    : ((await sql()`
+        SELECT 1 FROM posts WHERE slug = ${slug} LIMIT 1
+      `) as { "?column?": number }[]);
+  return rows.length > 0;
+}
+
+export async function getPostSlugs(): Promise<string[]> {
+  if (!requireDbOrEmpty()) return [];
+  const rows = (await sql()`
+    SELECT slug FROM posts ORDER BY date DESC
+  `) as { slug: string }[];
+  return rows.map((r) => r.slug);
+}
+
+type PostInput = {
+  slug: string;
+  title: string;
+  date: string;
+  tags?: string[];
+  categories?: string[];
+  excerpt?: string;
+  body: string;
+  published?: boolean;
+  featured?: boolean;
+};
+
+/** Insert a new post — fails if slug already exists. */
+export async function insertPost(input: PostInput): Promise<void> {
+  const published = input.published !== false;
+  const featured = input.featured === true;
+  await sql()`
+    INSERT INTO posts (slug, title, date, tags, categories, excerpt, body, published, featured)
+    VALUES (
+      ${input.slug},
+      ${input.title},
+      ${input.date},
+      ${input.tags ?? []},
+      ${input.categories ?? []},
+      ${input.excerpt ?? null},
+      ${input.body},
+      ${published},
+      ${featured}
+    )
+  `;
+}
+
+/** Update an existing post by its current slug (may rename slug). */
+export async function updatePost(
+  originalSlug: string,
+  input: PostInput,
+): Promise<void> {
+  const published = input.published !== false;
+  const featured = input.featured === true;
+  await sql()`
+    UPDATE posts SET
+      slug = ${input.slug},
+      title = ${input.title},
+      date = ${input.date},
+      tags = ${input.tags ?? []},
+      categories = ${input.categories ?? []},
+      excerpt = ${input.excerpt ?? null},
+      body = ${input.body},
+      published = ${published},
+      featured = ${featured},
+      updated_at = NOW()
+    WHERE slug = ${originalSlug}
+  `;
+}
+
+export async function setPostPublished(
+  slug: string,
+  published: boolean,
+): Promise<void> {
+  await sql()`
+    UPDATE posts
+    SET published = ${published}, updated_at = NOW()
+    WHERE slug = ${slug}
+  `;
+}
+
+export async function deletePost(slug: string): Promise<void> {
+  await sql()`DELETE FROM posts WHERE slug = ${slug}`;
+}
+
+export { nextNumericSlug, slugifyTitle, uniqueSlug } from "./slug";
+
+export function tagUrl(tag: string): string {
+  return `/tag/${slugifyTag(tag)}`;
+}
+
+export function postUrl(slug: string): string {
+  return `/${slug}`;
+}

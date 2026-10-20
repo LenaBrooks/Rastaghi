@@ -1,0 +1,14 @@
+/*
+ * Ganjnameh (GanjNamehSans) — Regular
+ * Copyright — see OFL.txt (Jomhuria Project Authors notice in upstream license)
+ * Designer: Mohammad Saleh Souzanchi — https://github.com/font-store/GanjnamehFont
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "Ganjnameh";
+  src: url("./GanjNamehSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

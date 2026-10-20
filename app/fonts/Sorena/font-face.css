@@ -1,0 +1,21 @@
+/*
+ * Sorena FD — Normal + Pixel
+ * Copyright 2024 The Sorena Project Authors — https://github.com/MDarvishi5124/Sorena
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "Sorena FD";
+  src: url("./SorenaFD-Normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sorena FD Pixel";
+  src: url("./SorenaFD-Pixel.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

@@ -1,0 +1,13 @@
+/*
+ * Mikhak FD — variable (wght 100–900; also KSHD / DSTY axes)
+ * Copyright 2022 The Mikhak Project Authors — https://github.com/aminabedi68/Mikhak
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt in this folder.
+ */
+
+@font-face {
+  font-family: "Mikhak FD";
+  src: url("./Mikhak-FD.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

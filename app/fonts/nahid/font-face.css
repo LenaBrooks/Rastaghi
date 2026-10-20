@@ -1,0 +1,15 @@
+/*
+ * Nahid — https://github.com/rastikerdar/nahid-font
+ * Copyright (c) Saber Rastikerdar
+ * License: Bitstream Vera + Apache-2.0 (Roboto) + public domain (Rastikerdar changes) — not OFL.
+ * Keep LICENSE in this folder when redistributing.
+ * Note: upstream project is archived / discontinued.
+ */
+
+@font-face {
+  font-family: "Nahid";
+  src: url("./Nahid.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Legacy Jekyll archive — not part of the Next app
+    "old/**",
   ]),
 ]);
 

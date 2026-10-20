@@ -1,0 +1,46 @@
+/*
+ * Sepehr — Thin, Light, Regular, Medium, Bold
+ * Copyright 2026 The Sepehr Project Authors — https://github.com/googlefonts/sepehr-fonts
+ * Based on DejaVu + Vazir; Persian glyphs redesigned by Saeed Rezaee.
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "Sepehr";
+  src: url("./Sepehr-Thin.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sepehr";
+  src: url("./Sepehr-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sepehr";
+  src: url("./Sepehr-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sepehr";
+  src: url("./Sepehr-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sepehr";
+  src: url("./Sepehr-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

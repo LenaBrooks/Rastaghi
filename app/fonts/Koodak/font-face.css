@@ -1,0 +1,13 @@
+/*
+ * Koodak — Regular
+ * Sharif FarsiWeb, Inc. — https://fontlibrary.org/en/font/koodak
+ * Bitstream Vera License (and derivatives) — see LICENSE (not OFL).
+ */
+
+@font-face {
+  font-family: "Koodak";
+  src: url("./Koodak-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

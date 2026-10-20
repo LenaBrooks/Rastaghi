@@ -1,0 +1,30 @@
+/*
+ * Samim FD — Persian digits mapped to 0–9.
+ * Copyright (c) 2015, Saber Rastikerdar — https://github.com/rastikerdar/samim-font
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE (or OFL.txt) in this folder.
+ * Note: upstream project is archived / discontinued.
+ */
+
+@font-face {
+  font-family: "Samim FD";
+  src: url("./Samim-FD.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Samim FD";
+  src: url("./Samim-Medium-FD.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Samim FD";
+  src: url("./Samim-Bold-FD.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

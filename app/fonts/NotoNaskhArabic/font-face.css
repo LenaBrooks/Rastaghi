@@ -1,0 +1,13 @@
+/*
+ * Noto Naskh Arabic — variable
+ * https://fonts.google.com/specimen/Noto+Naskh+Arabic
+ * Licensed under the SIL Open Font License, Version 1.1 — see OFL.txt.
+ */
+
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  src: url("./NotoNaskhArabic-wght.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}

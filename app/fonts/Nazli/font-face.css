@@ -1,0 +1,21 @@
+/*
+ * Nazli — Regular + Bold
+ * Sharif FarsiWeb, Inc. (based on Nazanin) — https://fontlibrary.org/en/font/nazli
+ * Licensed under the GNU General Public License v2 — see LICENSE / COPYING.txt.
+ */
+
+@font-face {
+  font-family: "Nazli";
+  src: url("./Nazli-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nazli";
+  src: url("./Nazli-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

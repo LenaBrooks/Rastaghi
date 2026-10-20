@@ -1,0 +1,37 @@
+/*
+ * XP Ziba — Regular, Bold, Italic, Bold Italic
+ * Designer: Behnam (X Series / Irmug) — https://fontlibrary.org/en/font/xp-ziba
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "XP Ziba";
+  src: url("./XPZiba-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XP Ziba";
+  src: url("./XPZiba-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XP Ziba";
+  src: url("./XPZiba-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XP Ziba";
+  src: url("./XPZiba-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}

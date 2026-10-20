@@ -1,0 +1,21 @@
+/*
+ * Terafik — Regular + Bold
+ * Sharif FarsiWeb, Inc. — https://fontlibrary.org/en/font/terafik
+ * Bitstream Vera License (and derivatives) — see LICENSE (not OFL).
+ */
+
+@font-face {
+  font-family: "Terafik";
+  src: url("./Terafik-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Terafik";
+  src: url("./Terafik-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

@@ -1,0 +1,14 @@
+/*
+ * Gandom — https://github.com/rastikerdar/gandom-font
+ * Copyright (c) 2015, Saber Rastikerdar
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE in this folder.
+ * Note: upstream project is archived / discontinued.
+ */
+
+@font-face {
+  font-family: "Gandom";
+  src: url("./Gandom.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

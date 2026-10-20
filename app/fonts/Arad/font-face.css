@@ -1,0 +1,14 @@
+/*
+ * Arad FD — variable (wght 100–900)
+ * Copyright 2025 The Arad Project Authors — https://github.com/MohamadDarvishi/Arad
+ * Reserved Font Name: Arad
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "Arad FD";
+  src: url("./Arad-FD.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

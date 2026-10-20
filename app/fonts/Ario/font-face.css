@@ -1,0 +1,13 @@
+/*
+ * Ario FD — FaNum Dots1
+ * Designer: Mohammad Darvishi — https://github.com/MohamadDarvishi/Ario
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "Ario FD";
+  src: url("./Ario-FD.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

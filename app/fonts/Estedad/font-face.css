@@ -1,0 +1,13 @@
+/*
+ * Estedad — variable (wght 100–900)
+ * Copyright 2022 The Estedad Project Authors — https://github.com/aminabedi68/Estedad
+ * Licensed under the SIL Open Font License, Version 1.1 — see OFL.txt in this folder.
+ */
+
+@font-face {
+  font-family: "Estedad";
+  src: url("./Estedad-wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

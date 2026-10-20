@@ -1,0 +1,22 @@
+/*
+ * Parastoo — https://github.com/rastikerdar/parastoo-font
+ * Copyright (c) 2016, Saber Rastikerdar
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE in this folder.
+ * Note: upstream project is archived / discontinued.
+ */
+
+@font-face {
+  font-family: "Parastoo";
+  src: url("./Parastoo.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Parastoo";
+  src: url("./Parastoo-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

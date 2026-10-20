@@ -1,0 +1,30 @@
+/*
+ * Samim — https://github.com/rastikerdar/samim-font
+ * Copyright (c) 2015, Saber Rastikerdar
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE in this folder.
+ * Note: upstream project is archived / discontinued.
+ */
+
+@font-face {
+  font-family: "Samim";
+  src: url("./Samim.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Samim";
+  src: url("./Samim-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Samim";
+  src: url("./Samim-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

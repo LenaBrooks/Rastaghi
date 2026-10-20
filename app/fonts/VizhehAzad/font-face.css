@@ -1,0 +1,14 @@
+/*
+ * VizhehAzad — Regular
+ * Copyright — see OFL.txt (Jomhuria Project Authors notice in upstream license)
+ * Redesign: Mohammad Saleh Souzanchi — https://github.com/font-store/font-VizhehAzad
+ * Licensed under the SIL Open Font License, Version 1.1 — see LICENSE / OFL.txt.
+ */
+
+@font-face {
+  font-family: "VizhehAzad";
+  src: url("./VizhehAzad-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
